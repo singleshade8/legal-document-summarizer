@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nyaya Saar – Multilingual Legal Summarizer</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --card:#ffffff; --ink:#1d2433; --muted:#667085; --line:#e4e0d6;
+    --accent:#1f4e79; --accent-ink:#ffffff; --soft:#eaf1f8; --gold:#b7791f; --ok:#1f7a4d; --err:#b42318;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#12161d;--card:#1a2029;--ink:#e8ecf3;--muted:#9aa4b5;--line:#2a3340;--accent:#6aa7e0;--accent-ink:#0d1520;--soft:#1e2a38;--gold:#e0b04a;--ok:#4cc38a;--err:#f97066}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Segoe UI","Noto Sans","Noto Sans Devanagari","Noto Sans Tamil",system-ui,sans-serif}
+  header{padding:28px 20px 8px;max-width:1080px;margin:0 auto}
+  header h1{margin:0;font-size:1.6rem;letter-spacing:.2px}
+  header h1 span{color:var(--gold)}
+  header p{margin:4px 0 0;color:var(--muted)}
+  main{max-width:1080px;margin:0 auto;padding:12px 20px 60px;display:grid;grid-template-columns:1fr;gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .tabs{display:flex;gap:6px;margin-bottom:12px}
+  .tab{border:1px solid var(--line);background:transparent;color:var(--ink);padding:7px 14px;border-radius:999px;cursor:pointer;font:inherit;font-size:.92rem}
+  .tab.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  textarea{width:100%;min-height:230px;resize:vertical;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:.96rem}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:34px;text-align:center;color:var(--muted);background:var(--bg)}
+  .drop input{margin-top:10px}
+  label.k{font-size:.85rem;color:var(--muted);display:block;margin-bottom:4px}
+  select,input[type=range]{font:inherit}
+  select{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+  .btn{background:var(--accent);color:var(--accent-ink);border:0;padding:11px 22px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);padding:7px 14px;font-weight:500;font-size:.9rem}
+  .chip{display:inline-block;background:var(--soft);color:var(--accent);padding:3px 11px;border-radius:999px;font-size:.84rem;margin:0 6px 6px 0}
+  .samples button{margin:0 6px 6px 0}
+  .msg{padding:10px 14px;border-radius:10px;font-size:.92rem}
+  .msg.err{background:color-mix(in srgb,var(--err) 12%,transparent);color:var(--err);border:1px solid var(--err)}
+  .msg.warn{background:color-mix(in srgb,var(--gold) 14%,transparent);color:var(--gold);border:1px solid var(--gold)}
+  table.info{width:100%;border-collapse:collapse}
+  table.info td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.94rem}
+  table.info td:first-child{color:var(--muted);width:32%;white-space:nowrap}
+  h2{font-size:1.05rem;margin:0 0 10px}
+  .sec h3{margin:16px 0 6px;font-size:.95rem;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
+  .sec ul{margin:0;padding-left:20px}
+  .sec li{margin-bottom:6px}
+  .sec.order{border-left:4px solid var(--gold);padding-left:12px;background:color-mix(in srgb,var(--gold) 6%,transparent);border-radius:4px}
+  .grid2{display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:900px){.grid2{grid-template-columns:1fr 1fr}}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  footer{max-width:1080px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:.82rem}
+  .print-only{display:none}
+  .hint{font-size:.8rem;color:var(--muted);margin:6px 0 0}
+  @media print{
+    :root{--bg:#fff;--card:#fff;--ink:#111;--muted:#444;--line:#bbb;--accent:#1f4e79;--soft:#eef3f8;--gold:#8a5a00}
+    @page{margin:16mm}
+    body{background:#fff;color:#111;font-size:11.5pt}
+    header,main>section.card,#status,#exportBar,#viewTabs,.hint{display:none!important}
+    .print-only{display:block}
+    #printHead{border-bottom:2px solid #1f4e79;margin-bottom:12pt;padding-bottom:8pt}
+    #printHead h1{margin:0;font-size:17pt}
+    #printMeta{font-size:9.5pt;color:#444;margin-top:4pt}
+    #printFoot{margin-top:14pt;font-size:9pt;color:#444;border-top:1px solid #bbb;padding-top:6pt}
+    main{padding:0;display:block}
+    .grid2{display:block}
+    .card{border:0;padding:0;margin:0 0 12pt}
+    .sec{break-inside:avoid}
+    table.info tr{break-inside:avoid}
+    footer{display:none}
+  }
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>Nyaya <span>Saar</span> · Multilingual Legal Summarizer</h1>
+  <p>District Court e-Services · Summarise judgments and orders in English, Hindi and Tamil</p>
+</header>
+
+<main>
+  <section class="card">
+    <div class="tabs">
+      <button class="tab on" data-tab="text">Paste text</button>
+      <button class="tab" data-tab="file">Upload file (PDF / DOCX / TXT)</button>
+    </div>
+
+    <div id="pane-text">
+      <textarea id="text" placeholder="Paste the judgment / order text here (English, हिन्दी or தமிழ்)…"></textarea>
+    </div>
+    <div id="pane-file" hidden>
+      <div class="drop">Choose a court order or judgment file<br>
+        <input type="file" id="file" accept=".pdf,.docx,.txt"></div>
+    </div>
+
+    <div class="samples" style="margin-top:12px">
+      <span class="k" style="font-size:.85rem;color:var(--muted)">Try a sample:</span><br>
+      {% for s in samples %}
+        <button class="btn ghost" data-sample="{{ s.id }}">{{ s.label }}</button>
+      {% endfor %}
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <div>
+        <label class="k" for="ratio">Summary length: <b id="ratioLabel">25%</b> of sentences</label>
+        <input type="range" id="ratio" min="10" max="50" step="5" value="25">
+      </div>
+      <div>
+        <label class="k" for="outLang">Output language</label>
+        <select id="outLang">
+          <option value="same">Same as document</option>
+          <option value="en">English</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+        </select>
+      </div>
+      <div style="margin-left:auto"><button class="btn" id="go">Summarise</button></div>
+    </div>
+    <p class="k" style="font-size:.8rem;color:var(--muted);margin:10px 0 0">
+      The sample judgments translate between English, Hindi and Tamil <b>offline</b> (built in). Translating your own
+      documents needs an internet connection; if the free services are busy, wait a minute and try again.</p>
+  </section>
+
+  <div id="status"></div>
+
+  <section id="result" hidden>
+    <div class="print-only" id="printHead"><h1>Legal Document Summary</h1><div id="printMeta"></div></div>
+    <div class="card" id="exportBar" style="margin-bottom:18px">
+      <div class="row">
+        <div id="chips" style="flex:1"></div>
+        <button class="btn ghost" id="copy">Copy summary</button>
+        <button class="btn ghost" id="download">Download .txt</button>
+        <button class="btn ghost" id="pdf">Download PDF</button>
+      </div>
+      <p class="hint">PDF: in the window that opens, set the destination to <b>Save as PDF</b> and press Save.</p>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2 id="infoTitle">Key details</h2><table class="info" id="info"></table></div>
+      <div class="card">
+        <div class="tabs" id="viewTabs" hidden></div>
+        <h2 id="sumTitle">Summary</h2>
+        <div id="summary"></div>
+      </div>
+    </div>
+    <div class="print-only" id="printFoot">Automatically generated extractive summary (Nyaya Saar). Every line is taken from the original judgment. This is a reading aid, not legal advice - verify against the original document.</div>
+  </section>
+</main>
+
+<footer>Extractive summariser (TF-IDF + TextRank with legal cue words). Output is an aid for reading — always verify against the original judgment. Sample documents are fictional. · v{{ version }}</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+let mode = "text", last = null, view = "original";
+
+document.querySelectorAll(".tab[data-tab]").forEach(b => b.onclick = () => {
+  mode = b.dataset.tab;
+  document.querySelectorAll(".tab[data-tab]").forEach(x => x.classList.toggle("on", x === b));
+  $("#pane-text").hidden = mode !== "text"; $("#pane-file").hidden = mode !== "file";
+});
+$("#ratio").oninput = e => $("#ratioLabel").textContent = e.target.value + "%";
+
+document.querySelectorAll("[data-sample]").forEach(b => b.onclick = async () => {
+  const r = await fetch("/api/samples/" + b.dataset.sample); const j = await r.json();
+  $("#text").value = j.text;
+  document.querySelector('.tab[data-tab="text"]').click();
+});
+
+function showMsg(kind, text){ $("#status").innerHTML = text ? `<div class="msg ${kind}">${esc(text)}</div>` : ""; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+$("#go").onclick = async () => {
+  const fd = new FormData();
+  if (mode === "file") {
+    const f = $("#file").files[0];
+    if (!f) return showMsg("err", "Please choose a file first.");
+    fd.append("file", f);
+  } else {
+    if (!$("#text").value.trim()) return showMsg("err", "Please paste some text or try a sample.");
+    fd.append("text", $("#text").value);
+  }
+  fd.append("ratio", $("#ratio").value / 100);
+  fd.append("out_lang", $("#outLang").value);
+  const btn = $("#go"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Summarising…';
+  showMsg("", "");
+  try {
+    const r = await fetch("/api/summarize", {method: "POST", body: fd});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || "Something went wrong");
+    last = j; view = (j.translation && !j.translation.error) ? "translated" : "original";
+    render();
+    if (j.translation && j.translation.error) showMsg("warn", j.translation.error);
+    $("#result").hidden = false; $("#result").scrollIntoView({behavior: "smooth"});
+  } catch (e) { showMsg("err", e.message); }
+  btn.disabled = false; btn.textContent = "Summarise";
+};
+
+function current(){
+  const t = last.translation;
+  if (view === "translated" && t && !t.error) return {sections: t.sections, info: t.key_info, text: t.summary_text};
+  return {sections: last.sections, info: last.key_info, text: last.summary_text};
+}
+
+function render(){
+  const j = last, s = j.stats, c = current();
+  $("#chips").innerHTML = [
+    "Language: " + j.language.name, s.sentences_selected + " of " + s.sentences_total + " sentences",
+    s.words_original + " → " + s.words_summary + " words", s.reduction_percent + "% shorter"
+  ].map(t => `<span class="chip">${esc(t)}</span>`).join("");
+
+  const tabs = $("#viewTabs");
+  if (j.translation && !j.translation.error) {
+    tabs.hidden = false;
+    tabs.innerHTML = `<button class="tab ${view==="original"?"on":""}" data-v="original">${esc(j.language.name)} (original)</button>
+                      <button class="tab ${view==="translated"?"on":""}" data-v="translated">${esc(j.translation.target_name)}</button>`;
+    tabs.querySelectorAll("button").forEach(b => b.onclick = () => { view = b.dataset.v; render(); });
+  } else tabs.hidden = true;
+
+  $("#info").innerHTML = c.info.length
+    ? c.info.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(r.value)}</td></tr>`).join("")
+    : '<tr><td colspan="2">No structured details detected.</td></tr>';
+
+  $("#summary").innerHTML = c.sections.map(sec =>
+    `<div class="sec ${sec.key === "Order" ? "order" : ""}"><h3>${esc(sec.title)}</h3><ul>${
+      sec.sentences.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`).join("");
+}
+
+$("#copy").onclick = async () => {
+  try { await navigator.clipboard.writeText(current().text); $("#copy").textContent = "Copied ✓"; }
+  catch { $("#copy").textContent = "Copy failed"; }
+  setTimeout(() => $("#copy").textContent = "Copy summary", 1500);
+};
+$("#download").onclick = () => {
+  const c = current();
+  const body = c.info.map(r => r.label + ": " + r.value).join("\n") + "\n\n" +
+    c.sections.map(s => s.title + "\n" + s.sentences.map(x => " - " + x).join("\n")).join("\n\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([body], {type: "text/plain;charset=utf-8"}));
+  a.download = "summary.txt"; a.click(); URL.revokeObjectURL(a.href);
+};
+$("#pdf").onclick = () => {
+  const j = last, s = j.stats;
+  const shown = (view === "translated" && j.translation && !j.translation.error) ? j.translation.target_name : j.language.name;
+  $("#printMeta").textContent = `Summary language: ${shown} · Original document: ${j.language.name} · ` +
+    `${s.sentences_selected} of ${s.sentences_total} sentences · ${s.words_original} → ${s.words_summary} words · ` +
+    new Date().toLocaleString();
+  const row = j.key_info.find(r => /\d+\s*\/\s*\d{4}/.test(r.value));
+  const m = row && row.value.match(/\d+\s*\/\s*\d{4}/);
+  const old = document.title;
+  document.title = "Legal-Summary" + (m ? "-" + m[0].replace(/\s+/g, "").replace("/", "-") : "");
+  window.addEventListener("afterprint", () => { document.title = old; }, {once: true});
+  window.print();
+};
+</script>
+</body>
+</html>
