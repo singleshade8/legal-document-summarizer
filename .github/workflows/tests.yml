@@ -1,4 +1,4 @@
-name: Python tests
+name: Python tests and source package
 
 on:
   push:
@@ -25,3 +25,12 @@ jobs:
           python -m pip install -r requirements.txt reportlab
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
+      - name: Package improved source code
+        run: git archive --format=zip --prefix=legal-document-summarizer/ HEAD -o legal-document-summarizer-improved.zip
+      - name: Upload source ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: legal-document-summarizer-improved
+          path: legal-document-summarizer-improved.zip
+          if-no-files-found: error
+          retention-days: 7
