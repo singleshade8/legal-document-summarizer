@@ -60,9 +60,17 @@ def _tokens(text: str) -> set[str]:
 
 
 def _negated(text: str, lang: str) -> bool:
-    normal = _normalise(text)
+    """Detect an explicit negation cue without matching inside unrelated words.
+
+    English cues require a whole-token match. Hindi/Tamil cues also allow a
+    token to start with a listed stem to catch common inflected forms. This is
+    still a shallow heuristic and must not be treated as semantic polarity.
+    """
+    tokens = _TOKEN_RE.findall(_normalise(text))
     terms = _NEGATIONS.get(lang, set())
-    return any(term in normal for term in terms)
+    if lang == "en":
+        return any(term in tokens for term in terms)
+    return any(token == term or token.startswith(term) for token in tokens for term in terms)
 
 
 def _candidate_score(claim: str, evidence: str) -> float:
