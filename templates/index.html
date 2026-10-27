@@ -3,240 +3,895 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nyaya Saar – Multilingual Legal Summarizer</title>
+<meta name="theme-color" content="#f5f1e9">
+<title>Nyaya Saar — Multilingual Legal Document Summarization</title>
 <style>
-  :root{
-    --bg:#f6f4ef; --card:#ffffff; --ink:#1d2433; --muted:#667085; --line:#e4e0d6;
-    --accent:#1f4e79; --accent-ink:#ffffff; --soft:#eaf1f8; --gold:#b7791f; --ok:#1f7a4d; --err:#b42318;
+  :root {
+    color-scheme: light;
+    --paper: #f5f2ec;
+    --surface: #fffefa;
+    --surface-2: #f9f7f2;
+    --ink: #292a29;
+    --muted: #686963;
+    --line: #d9d5cc;
+    --line-strong: #bdb8ad;
+    --accent: #7c3732;
+    --accent-hover: #602824;
+    --accent-soft: #f4eae7;
+    --gold: #8e713d;
+    --gold-soft: #f7f2e8;
+    --danger: #8a3731;
+    --danger-bg: #fbefed;
+    --warning: #74561f;
+    --warning-bg: #f8f3e7;
+    --focus: #236d87;
+    --radius: 5px;
+    font-synthesis: none;
   }
-  @media (prefers-color-scheme: dark){
-    :root{--bg:#12161d;--card:#1a2029;--ink:#e8ecf3;--muted:#9aa4b5;--line:#2a3340;--accent:#6aa7e0;--accent-ink:#0d1520;--soft:#1e2a38;--gold:#e0b04a;--ok:#4cc38a;--err:#f97066}
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 15px/1.55 "Segoe UI", "Noto Sans", "Noto Sans Devanagari", "Noto Sans Tamil", system-ui, sans-serif;
+    text-rendering: optimizeLegibility;
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Segoe UI","Noto Sans","Noto Sans Devanagari","Noto Sans Tamil",system-ui,sans-serif}
-  header{padding:28px 20px 8px;max-width:1080px;margin:0 auto}
-  header h1{margin:0;font-size:1.6rem;letter-spacing:.2px}
-  header h1 span{color:var(--gold)}
-  header p{margin:4px 0 0;color:var(--muted)}
-  main{max-width:1080px;margin:0 auto;padding:12px 20px 60px;display:grid;grid-template-columns:1fr;gap:18px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
-  .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-  .tabs{display:flex;gap:6px;margin-bottom:12px}
-  .tab{border:1px solid var(--line);background:transparent;color:var(--ink);padding:7px 14px;border-radius:999px;cursor:pointer;font:inherit;font-size:.92rem}
-  .tab.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-  textarea{width:100%;min-height:230px;resize:vertical;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:.96rem}
-  .drop{border:2px dashed var(--line);border-radius:12px;padding:34px;text-align:center;color:var(--muted);background:var(--bg)}
-  .drop input{margin-top:10px}
-  label.k{font-size:.85rem;color:var(--muted);display:block;margin-bottom:4px}
-  select,input[type=range]{font:inherit}
-  select{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-  .btn{background:var(--accent);color:var(--accent-ink);border:0;padding:11px 22px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
-  .btn:disabled{opacity:.6;cursor:wait}
-  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);padding:7px 14px;font-weight:500;font-size:.9rem}
-  .chip{display:inline-block;background:var(--soft);color:var(--accent);padding:3px 11px;border-radius:999px;font-size:.84rem;margin:0 6px 6px 0}
-  .samples button{margin:0 6px 6px 0}
-  .msg{padding:10px 14px;border-radius:10px;font-size:.92rem}
-  .msg.err{background:color-mix(in srgb,var(--err) 12%,transparent);color:var(--err);border:1px solid var(--err)}
-  .msg.warn{background:color-mix(in srgb,var(--gold) 14%,transparent);color:var(--gold);border:1px solid var(--gold)}
-  table.info{width:100%;border-collapse:collapse}
-  table.info td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.94rem}
-  table.info td:first-child{color:var(--muted);width:32%;white-space:nowrap}
-  h2{font-size:1.05rem;margin:0 0 10px}
-  .sec h3{margin:16px 0 6px;font-size:.95rem;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
-  .sec ul{margin:0;padding-left:20px}
-  .sec li{margin-bottom:6px}
-  .sec.order{border-left:4px solid var(--gold);padding-left:12px;background:color-mix(in srgb,var(--gold) 6%,transparent);border-radius:4px}
-  .grid2{display:grid;grid-template-columns:1fr;gap:18px}
-  @media(min-width:900px){.grid2{grid-template-columns:1fr 1fr}}
-  .spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:8px}
-  @keyframes s{to{transform:rotate(360deg)}}
-  footer{max-width:1080px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:.82rem}
-  .print-only{display:none}
-  .hint{font-size:.8rem;color:var(--muted);margin:6px 0 0}
-  .claim-item{border-top:1px solid var(--line);padding:10px 0}
-  .claim-item:first-child{border-top:0}
-  .claim-status{font-weight:700;font-size:.8rem}
-  .claim-evidence{margin:5px 0 0;padding-left:12px;border-left:2px solid var(--line);color:var(--muted);font-size:.88rem}
-  .claim-item p{margin:5px 0}
-  @media print{
-    :root{--bg:#fff;--card:#fff;--ink:#111;--muted:#444;--line:#bbb;--accent:#1f4e79;--soft:#eef3f8;--gold:#8a5a00}
-    @page{margin:16mm}
-    body{background:#fff;color:#111;font-size:11.5pt}
-    header,main>section.card,#status,#exportBar,#viewTabs,.hint{display:none!important}
-    .print-only{display:block}
-    #printHead{border-bottom:2px solid #1f4e79;margin-bottom:12pt;padding-bottom:8pt}
-    #printHead h1{margin:0;font-size:17pt}
-    #printMeta{font-size:9.5pt;color:#444;margin-top:4pt}
-    #printFoot{margin-top:14pt;font-size:9pt;color:#444;border-top:1px solid #bbb;padding-top:6pt}
-    main{padding:0;display:block}
-    .grid2{display:block}
-    .card{border:0;padding:0;margin:0 0 12pt}
-    .sec{break-inside:avoid}
-    table.info tr{break-inside:avoid}
-    footer{display:none}
+  button, input, select, textarea { font: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  [hidden] { display: none !important; }
+
+  .site-header { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .header-inner {
+    width: min(1100px, calc(100% - 48px)); min-height: 62px; margin: auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 18px;
   }
-  [hidden]{display:none!important}
+  .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; }
+  .brand-mark { width: 25px; height: 29px; color: var(--accent); flex: 0 0 auto; }
+  .brand-name { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 1.16rem; line-height: 1; font-weight: 700; letter-spacing: -.025em; }
+  .brand-name span { color: var(--accent); }
+  .brand-caption { margin: 3px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.25; }
+  .main-nav { display: flex; align-items: center; gap: 19px; }
+  .main-nav a { color: var(--muted); text-decoration: none; font-size: .82rem; font-weight: 600; }
+  .main-nav a:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+
+  main { width: min(1040px, calc(100% - 48px)); margin: 0 auto; padding: 27px 0 36px; }
+  .page-heading { margin-bottom: 19px; padding-left: 15px; border-left: 3px solid var(--accent); }
+  .page-heading h1 { margin: 0; font: 600 clamp(1.65rem, 2.6vw, 2.15rem)/1.16 Georgia, "Times New Roman", serif; letter-spacing: -.035em; }
+  .page-heading p { max-width: 650px; margin: 7px 0 0; color: var(--muted); font-size: .88rem; }
+  .workspace {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 5px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(42, 35, 28, .035);
+  }
+  .workspace-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; padding-bottom: 16px; margin-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    display: block; margin-bottom: 5px; color: var(--accent);
+    font-size: .68rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase;
+  }
+  .workspace-header h2 {
+    margin: 0; font: 600 1.12rem/1.3 Georgia, "Times New Roman", serif;
+    letter-spacing: -.015em;
+  }
+  .file-limit {
+    flex: 0 0 auto; color: var(--muted); font-size: .72rem;
+    padding: 5px 8px; border: 1px solid var(--line); background: var(--surface-2);
+  }
+  .workspace-grid {
+    display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(250px, .8fr);
+    gap: 0; align-items: stretch;
+  }
+  .document-entry { min-width: 0; padding-right: 22px; }
+  .entry-topline { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .entry-state { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: .72rem; white-space: nowrap; }
+  .entry-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }
+  .entry-state[data-state="ready"] { color: #405e49; }
+  .entry-state[data-state="ready"]::before { background: #557b60; }
+  .options-panel {
+    min-width: 0; padding-left: 22px; border-left: 1px solid var(--line);
+    display: flex; flex-direction: column;
+  }
+  .options-heading { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .step-index {
+    display: inline-grid; place-items: center; width: 26px; height: 26px; flex: 0 0 26px;
+    border: 1px solid #c9b9a8; color: var(--accent); font: 700 .73rem/1 Georgia, "Times New Roman", serif;
+  }
+  .options-heading h3 { margin: 0; font-size: .91rem; font-weight: 750; }
+  .options-heading p { margin: 3px 0 0; color: var(--muted); font-size: .74rem; line-height: 1.4; }
+  .options-panel .example-row { display: block; margin: 0 0 17px; }
+  .options-panel .example-row label { display: block; margin-bottom: 5px; color: var(--ink); font-weight: 700; font-size: .78rem; }
+  .options-panel .example-row select { width: 100%; }
+  .options-panel .settings {
+    display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 17px;
+    margin: 0; padding: 0; border: 0;
+  }
+  .options-panel .primary-action { justify-self: stretch; align-self: stretch; margin-top: 2px; }
+  .options-panel .primary-action .button { width: 100%; min-height: 43px; }
+  .privacy-inline { padding-top: 14px; border-top: 1px solid var(--line); }
+  .options-panel .setting-note { width: 100%; }
+  .options-panel .setting-note::before { content: "✓"; }
+  .options-panel .setting-note[data-ready="false"]::before { content: "!"; }
+  .input-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 10px; }
+  .input-heading h2 { margin: 0; font-size: .95rem; letter-spacing: .01em; }
+  .input-heading span { color: var(--muted); font-size: .78rem; }
+
+  .tabs { display: inline-flex; gap: 2px; margin-bottom: 11px; padding: 3px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-2); }
+  .tab { min-height: 34px; padding: 6px 13px; border: 0; border-radius: 3px; background: transparent; color: var(--muted); font-size: .84rem; font-weight: 650; cursor: pointer; }
+  .tab:hover { color: var(--accent); }
+  .tab.on { background: var(--surface); color: var(--accent); box-shadow: 0 1px 2px rgba(31, 30, 28, .12); }
+  .tab-panel { min-width: 0; }
+  .field-label { display: block; margin: 0 0 5px; font-size: .82rem; font-weight: 700; }
+  textarea {
+    display: block; width: 100%; min-height: 192px; max-height: 42vh; resize: vertical;
+    padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: 3px;
+    background: #fffefa; color: var(--ink); font-size: .94rem; line-height: 1.7;
+  }
+  textarea::placeholder { color: #77766f; opacity: 1; }
+  textarea:focus, select:focus { border-color: var(--focus); outline: 0; box-shadow: 0 0 0 3px rgba(35, 109, 135, .14); }
+  .text-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 5px; color: var(--muted); font-size: .76rem; }
+
+  .drop {
+    min-height: 158px; padding: 18px; display: flex; align-items: center; justify-content: center;
+    border: 1px dashed var(--line-strong); border-radius: 3px; background: var(--surface-2);
+    text-align: center; color: var(--muted); transition: background .12s ease, border-color .12s ease;
+  }
+  .drop.is-dragging { border-color: var(--accent); background: var(--accent-soft); }
+  .drop-content { display: flex; align-items: center; flex-direction: column; gap: 5px; }
+  .drop-title { color: var(--ink); font-weight: 650; font-size: .9rem; }
+  .drop-subtitle { font-size: .78rem; }
+  .file-picker { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .file-picker:focus-visible + .file-button { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .file-button, .button {
+    min-height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 7px 12px; border: 1px solid var(--line-strong); border-radius: 3px;
+    background: var(--surface); color: var(--ink); font-size: .84rem; font-weight: 650; cursor: pointer; text-decoration: none;
+  }
+  .file-button:hover, .button:hover { background: var(--surface-2); border-color: #8d887e; }
+  .button.primary { min-height: 39px; padding: 8px 16px; border-color: var(--accent); background: var(--accent); color: #fff; font-size: .87rem; }
+  .button.primary:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
+  .button:disabled { opacity: .63; cursor: wait; }
+  .file-meta { width: min(100%, 500px); display: flex; align-items: center; gap: 8px 12px; margin-top: 5px; padding: 7px 9px; border: 1px solid var(--line); background: var(--surface); text-align: left; }
+  .file-name { min-width: 0; flex: 1; overflow-wrap: anywhere; color: var(--ink); font-size: .82rem; font-weight: 650; }
+  .file-size { color: var(--muted); font-size: .75rem; white-space: nowrap; }
+  .text-link { padding: 2px; border: 0; background: transparent; color: var(--accent); font-size: .78rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+  .example-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 8px 0 0; }
+  .example-row label { color: var(--muted); font-size: .78rem; }
+  select { min-height: 36px; max-width: 100%; padding: 6px 29px 6px 9px; border: 1px solid var(--line); border-radius: 3px; background-color: var(--surface); color: var(--ink); font-size: .83rem; }
+
+  .settings {
+    display: grid; grid-template-columns: minmax(210px, 1fr) minmax(185px, .8fr) auto;
+    align-items: start; gap: 16px 24px; margin-top: 15px; padding-top: 14px; border-top: 1px solid var(--line);
+  }
+  .setting label { display: block; margin-bottom: 4px; font-size: .8rem; font-weight: 700; }
+  .range-label { color: var(--accent); font-variant-numeric: tabular-nums; }
+  #ratio { display: block; width: 100%; margin: 7px 0 0; accent-color: var(--accent); cursor: pointer; }
+  .setting select { width: 100%; }
+  .setting-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    margin: 6px 0 0;
+    padding: 6px 10px;
+    border: 1px solid;
+    border-radius: 4px;
+    font-size: .76rem;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+  .setting-note::before {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-size: .7rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .setting-note[data-ready="true"] {
+    color: #405e49;
+    background: #edf3ee;
+    border-color: #cad8cd;
+  }
+  .setting-note[data-ready="true"]::before { content: "✓"; }
+  .setting-note[data-ready="false"] {
+    color: #705a2a;
+    background: #f7f2e7;
+    border-color: #dfd2b3;
+  }
+  .setting-note[data-ready="false"]::before {
+    content: "!";
+    font-size: .75rem;
+  }
+  .setting-note:not([hidden]) {
+    animation: status-appear 180ms ease-out both;
+  }
+  @keyframes status-appear {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .setting-note:not([hidden]) { animation: none; }
+  }
+  .setting-note[hidden] { display: none !important; }
+  .primary-action { justify-self: end; align-self: end; }
+  .privacy-inline { margin: 12px 0 0; color: var(--muted); font-size: .77rem; }
+  .privacy-inline a { color: var(--accent); text-underline-offset: 3px; }
+  .disclosure { margin-top: 7px; padding-top: 7px; border-top: 1px solid #ece8df; color: var(--muted); font-size: .79rem; }
+  .disclosure summary { width: fit-content; color: var(--accent); font-size: .78rem; cursor: pointer; text-underline-offset: 3px; }
+  .disclosure p { max-width: 900px; margin: 7px 0 0; }
+
+  #status { margin: 10px 0; }
+  .msg { padding: 9px 12px; border: 1px solid; border-radius: 3px; font-size: .86rem; }
+  .msg.err { color: var(--danger); background: var(--danger-bg); border-color: #d8b3ae; }
+  .msg.warn { color: var(--warning); background: var(--warning-bg); border-color: #dccb9f; }
+
+  #result { margin-top: 28px; }
+  .result-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 15px; margin-bottom: 10px; }
+  .result-top h2 { margin: 0; font: 600 1.45rem/1.2 Georgia, "Times New Roman", serif; }
+  .result-subtitle { margin: 4px 0 0; color: var(--muted); font-size: .82rem; }
+  #exportBar { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  #chips { min-width: 0; display: flex; flex-wrap: wrap; gap: 5px 12px; }
+  .chip { color: var(--muted); font-size: .76rem; font-variant-numeric: tabular-nums; }
+  .chip + .chip::before { content: "·"; margin-right: 12px; color: var(--line-strong); }
+  .export-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .export-actions .button { min-height: 32px; padding: 5px 9px; font-size: .77rem; }
+  .hint { margin: 5px 0 0; color: var(--muted); font-size: .76rem; }
+  .result-grid { display: grid; grid-template-columns: minmax(230px, .7fr) minmax(0, 1.7fr); gap: 24px; align-items: start; margin-top: 17px; }
+  .result-panel { min-width: 0; }
+  .result-panel h3, .claim-panel h3 { margin: 0 0 8px; color: var(--ink); font-size: .89rem; letter-spacing: .025em; }
+  table.info { width: 100%; border-collapse: collapse; }
+  table.info td { padding: 7px 5px; border-bottom: 1px solid #e5e1d9; vertical-align: top; overflow-wrap: anywhere; font-size: .83rem; }
+  table.info tr:last-child td { border-bottom: 0; }
+  table.info td:first-child { width: 38%; color: var(--muted); font-size: .78rem; }
+  #summary { max-width: 740px; min-width: 0; }
+  #viewTabs { display: flex; width: fit-content; gap: 3px; margin: 0 0 12px; border-bottom: 1px solid var(--line); }
+  #viewTabs .tab { min-height: 31px; padding: 5px 10px; border-radius: 2px 2px 0 0; font-size: .79rem; }
+  #viewTabs .tab.on { background: transparent; box-shadow: inset 0 -2px var(--accent); }
+  .sec { padding: 0 0 14px; }
+  .sec + .sec { padding-top: 12px; border-top: 1px solid #e5e1d9; }
+  .sec h3 { margin: 0 0 6px; color: var(--accent); font-size: .77rem; letter-spacing: .075em; text-transform: uppercase; }
+  .sec ul { margin: 0; padding-left: 19px; }
+  .sec li { margin: 0 0 7px; padding-left: 2px; line-height: 1.72; }
+  .sec li:last-child { margin-bottom: 0; }
+  .sec.order { margin-top: 1px; padding: 10px 12px; border-left: 3px solid var(--gold); background: var(--gold-soft); }
+  .sec.order h3 { color: #6e572c; }
+  .claim-panel { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line-strong); }
+  .claim-intro { max-width: 850px; margin: 0; color: var(--muted); font-size: .79rem; }
+  #claimCheckSummary { margin-top: 8px; color: var(--muted); font-size: .77rem; }
+  .claim-item { padding: 10px 0; border-top: 1px solid #e5e1d9; }
+  .claim-item:first-child { margin-top: 8px; }
+  .claim-status { color: #4c504c; font-size: .77rem; font-weight: 700; }
+  .claim-item p { margin: 4px 0 0; overflow-wrap: anywhere; font-size: .85rem; }
+  .claim-evidence { margin: 5px 0 0; padding-left: 9px; border-left: 2px solid #c5c1b8; color: #5e605b; font-size: .8rem; overflow-wrap: anywhere; }
+  .claim-evidence strong { color: #41433f; }
+  .claim-item .hint { margin-top: 5px; }
+  .claim-caveat { margin-top: 8px; color: var(--muted); font-size: .76rem; }
+  .site-footer { width: min(1040px, calc(100% - 48px)); margin: 0 auto; padding: 0 0 23px; color: var(--muted); font-size: .75rem; }
+  .site-footer p { margin: 4px 0; }
+  .about-details { margin: 8px 0 0; }
+  .about-details summary { width: fit-content; color: var(--accent); cursor: pointer; text-underline-offset: 3px; }
+  .about-details p { max-width: 850px; }
+  .print-only { display: none; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 820px) {
+    .header-inner, main, .site-footer { width: min(100% - 32px, 1040px); }
+    main { padding-top: 22px; }
+    .workspace { padding: 18px; }
+    .workspace-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .document-entry { padding-right: 0; }
+    .options-panel { padding: 18px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+    .options-panel .settings { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 13px 18px; }
+    .options-panel .primary-action { grid-column: 1 / -1; }
+    .result-grid { grid-template-columns: minmax(0, 1fr); gap: 17px; }
+    .result-top { align-items: flex-start; flex-direction: column; }
+  }
+  @media (max-width: 480px) {
+    .header-inner, main, .site-footer { width: calc(100% - 28px); }
+    .header-inner { min-height: 58px; gap: 8px; }
+    .brand { gap: 6px; }
+    .brand-mark { width: 22px; height: 25px; }
+    .brand-name { font-size: 1.03rem; }
+    .brand-caption { max-width: 177px; font-size: .65rem; }
+    .main-nav { gap: 11px; }
+    .main-nav a { font-size: .74rem; }
+    .main-nav a:nth-child(4) { display: none; }
+    main { padding-top: 19px; }
+    .page-heading { margin-bottom: 12px; }
+    .page-heading h1 { font-size: 1.5rem; }
+    .page-heading p { font-size: .83rem; }
+    .workspace { padding: 14px 12px; }
+    .workspace-header { flex-direction: column; gap: 8px; }
+    .file-limit { align-self: flex-start; }
+    .tabs { display: flex; width: 100%; }
+    .tab { flex: 1; padding-inline: 7px; font-size: .8rem; }
+    textarea { min-height: 180px; padding: 10px; font-size: .9rem; }
+    .drop { min-height: 148px; padding: 12px; }
+    .options-panel .settings { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .options-panel .primary-action { grid-column: auto; }
+    .entry-topline { align-items: flex-start; flex-direction: column; }
+    .text-foot { align-items: flex-start; flex-direction: column; }
+    .result-top h2 { font-size: 1.3rem; }
+    #exportBar { align-items: flex-start; flex-direction: column; }
+    #chips { row-gap: 3px; }
+    .export-actions { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .export-actions .button { min-height: 38px; padding: 6px 5px; font-size: .75rem; }
+    .claim-item p { font-size: .82rem; }
+    table.info td:first-child { width: 35%; }
+  }
+  @media (max-width: 350px) {
+    .brand-caption { max-width: 145px; }
+    .main-nav { gap: 7px; }
+    .main-nav a { font-size: .69rem; }
+    .workspace { padding-inline: 10px; }
+    .workspace-header h2 { font-size: 1.02rem; }
+    .file-meta { flex-wrap: wrap; }
+    .file-name { flex-basis: calc(100% - 75px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+  @media print {
+    @page { margin: 16mm; }
+    body { background: #fff; color: #111; font-size: 10.5pt; }
+    .site-header, .page-heading, #workspace, #status, .site-footer { display: none !important; }
+    main { width: auto; margin: 0; padding: 0; }
+    #result { display: block !important; margin: 0; }
+    .print-only { display: block; }
+    #printHead { margin-bottom: 12pt; padding-bottom: 8pt; border-bottom: 2px solid #7c3732; }
+    #printHead h1 { margin: 0; font: 600 17pt Georgia, "Times New Roman", serif; }
+    #printMeta { margin-top: 4pt; color: #444; font-size: 9pt; }
+    .result-top { display: none; }
+    #exportBar { display: none !important; }
+    .result-grid { display: block; margin-top: 10pt; }
+    .result-panel { margin-bottom: 12pt; }
+    .result-panel h3, .claim-panel h3 { color: #222; }
+    #viewTabs { display: none !important; }
+    .sec, .claim-item, table.info tr { break-inside: avoid; }
+    .sec.order { background: #f5f0e5 !important; border-left: 3px solid #8e713d; padding: 8pt 10pt; print-color-adjust: exact; }
+    .claim-panel { margin-top: 12pt; }
+    #printFoot { display: block; margin-top: 14pt; padding-top: 6pt; border-top: 1px solid #aaa; color: #444; font-size: 8.5pt; }
+  }
+
+  .button, .file-button, .tab, select, .text-link { transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease, transform 140ms ease; }
+  .button.primary:active { transform: translateY(1px); }
+  .document-entry textarea { transition: border-color 140ms ease, box-shadow 140ms ease; }
+  .drop.is-dragging { box-shadow: inset 0 0 0 1px var(--accent); }
+  @media (prefers-reduced-motion: reduce) {
+    .button, .file-button, .tab, select, .text-link, .document-entry textarea { transition: none !important; }
+  }
+
+
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  /* Document-aware legal Q&A workspace */
+  #chatSection { margin-top: 28px; background: var(--surface); border: 1px solid var(--line); border-radius: 5px; box-shadow: 0 8px 24px rgba(42, 35, 28, .035); overflow: hidden; }
+  .chat-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; padding: 19px 22px 16px; border-bottom: 1px solid var(--line); }
+  .chat-head h2 { margin: 0; font: 600 1.35rem/1.2 Georgia, "Times New Roman", serif; letter-spacing: -.02em; }
+  .chat-head p { max-width: 650px; margin: 6px 0 0; color: var(--muted); font-size: .83rem; }
+  .chat-connection { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; padding: 5px 8px; border: 1px solid var(--line); color: var(--muted); background: var(--surface-2); font-size: .72rem; }
+  .chat-connection::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }
+  .chat-connection[data-ready="true"] { color: #405e49; border-color: #c6d4c6; background: #f1f6f0; }
+  .chat-connection[data-ready="true"]::before { background: #557b60; }
+  .chat-provider-note { display: block; margin-top: 7px; color: var(--muted); font-size: .68rem; letter-spacing: .02em; }
+  .chat-body { padding: 16px 22px 20px; }
+  .chat-mode-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 13px; }
+  .chat-mode-tabs { display: inline-flex; gap: 3px; padding: 3px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-2); }
+  .chat-mode { min-height: 34px; padding: 6px 12px; border: 0; border-radius: 3px; background: transparent; color: var(--muted); font-size: .81rem; font-weight: 700; cursor: pointer; }
+  .chat-mode[aria-pressed="true"] { color: var(--accent); background: var(--surface); box-shadow: 0 1px 2px rgba(31, 30, 28, .12); }
+  .chat-privacy { max-width: 380px; margin: 0; color: var(--muted); font-size: .73rem; }
+  .chat-thread { display: flex; flex-direction: column; gap: 12px; min-height: 220px; max-height: 410px; overflow: auto; padding: 15px; border: 1px solid var(--line); background: #fbfaf6; scroll-behavior: smooth; }
+  .chat-message { display: flex; align-items: flex-start; gap: 9px; max-width: min(88%, 760px); }
+  .chat-message.user { align-self: flex-end; flex-direction: row-reverse; }
+  .chat-avatar { display: grid; place-items: center; width: 27px; height: 27px; flex: 0 0 27px; border: 1px solid #c9b9a8; color: var(--accent); background: var(--surface); font: 700 .65rem Georgia, "Times New Roman", serif; }
+  .chat-message.user .chat-avatar { color: #fff; background: #353a36; border-color: #353a36; font-family: inherit; }
+  .chat-bubble { padding: 10px 12px; border: 1px solid #e0dcd3; background: #fffefa; font-size: .86rem; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .chat-message.user .chat-bubble { color: #fff; border-color: #353a36; background: #353a36; }
+  .chat-message.error .chat-bubble { color: var(--danger); border-color: #d8b3ae; background: var(--danger-bg); }
+  .chat-bubble strong { font-weight: 750; }
+  .chat-bubble code { padding: 1px 4px; border: 1px solid #e4dfd6; background: #f5f2ec; font-size: .92em; }
+  .chat-loading { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .8rem; }
+  .chat-suggestions { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: 12px 0 14px; }
+  .chat-suggestions-label { margin-right: 3px; color: var(--muted); font-size: .75rem; }
+  .chat-suggestion { padding: 6px 9px; border: 1px solid var(--line); border-radius: 3px; color: var(--ink); background: var(--surface); font-size: .75rem; text-align: left; cursor: pointer; }
+  .chat-suggestion:hover { color: var(--accent); border-color: var(--line-strong); background: var(--accent-soft); }
+  .chat-composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 9px; }
+  #chatInput { min-height: 70px; max-height: 180px; resize: vertical; padding: 10px 12px; font-size: .88rem; }
+  .chat-send-col { display: flex; flex-direction: column; gap: 6px; }
+  .chat-send-col .button { min-height: 39px; }
+  .chat-clear { border: 0; padding: 4px; color: var(--muted); background: transparent; font-size: .72rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .chat-footnote { margin: 9px 0 0; color: var(--muted); font-size: .73rem; }
+  .chat-notice { margin: 0 0 10px; color: var(--warning); font-size: .78rem; }
+  @media (max-width: 820px) {
+    .chat-head { flex-direction: column; padding: 17px 18px 14px; }
+    .chat-body { padding: 14px 18px 17px; }
+    .chat-mode-row { align-items: flex-start; flex-direction: column; }
+  }
+  @media (max-width: 480px) {
+    .chat-head { padding: 15px 13px 13px; }
+    .chat-head h2 { font-size: 1.2rem; }
+    .chat-body { padding: 12px 10px 13px; }
+    .chat-mode-tabs { width: 100%; }
+    .chat-mode { flex: 1; padding-inline: 6px; font-size: .75rem; }
+    .chat-thread { min-height: 190px; max-height: 330px; padding: 10px 8px; }
+    .chat-message { max-width: 96%; gap: 6px; }
+    .chat-avatar { width: 24px; height: 24px; flex-basis: 24px; }
+    .chat-bubble { padding: 8px 9px; font-size: .82rem; }
+    .chat-composer { grid-template-columns: minmax(0, 1fr); }
+    .chat-send-col { flex-direction: row; align-items: center; justify-content: space-between; }
+    .chat-send-col .button { min-width: 120px; }
+  }
+  @media print { #chatSection { display: none !important; } }
+
 </style>
 </head>
 <body>
-<header>
-  <h1>Nyaya <span>Saar</span> · Multilingual Legal Summarizer</h1>
-  <p>District Court e-Services · Summarise judgments and orders in English, Hindi and Tamil</p>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="#top" aria-label="Nyaya Saar">
+      <svg class="brand-mark" viewBox="0 0 24 28" aria-hidden="true" fill="none">
+        <path d="M3.5 1.5h11l6 6V26H3.5V1.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M14.5 2v6h6M7 13h10M7 17h10M7 21h7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <span>
+        <span class="brand-name">Nyaya <span>Saar</span></span>
+        <span class="brand-caption">Multilingual Legal Document Summarization</span>
+      </span>
+    </a>
+    <nav class="main-nav" aria-label="Page navigation">
+      <a href="#workspace">Workspace</a>
+      <a href="#chatSection">Ask Nyaya</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#about">About</a>
+    </nav>
+  </div>
 </header>
 
-<main>
-  <section class="card">
-    <div class="tabs">
-      <button class="tab on" data-tab="text">Paste text</button>
-      <button class="tab" data-tab="file">Upload file (PDF / DOCX / TXT)</button>
-    </div>
+<main id="top">
+  <div class="page-heading">
+    <h1>Summarize a legal document</h1>
+    <p>Provide a judgment or order, choose the summary options, then review the result against its source.</p>
+  </div>
 
-    <div id="pane-text">
-      <textarea id="text" placeholder="Paste the judgment / order text here (English, हिन्दी or தமிழ்)…"></textarea>
-    </div>
-    <div id="pane-file" hidden>
-      <div class="drop">Choose a court order or judgment file<br>
-        <input type="file" id="file" accept=".pdf,.docx,.txt"></div>
-    </div>
-
-    <div class="samples" style="margin-top:12px">
-      <span class="k" style="font-size:.85rem;color:var(--muted)">Try a sample:</span><br>
-      {% for s in samples %}
-        <button class="btn ghost" data-sample="{{ s.id }}">{{ s.label }}</button>
-      {% endfor %}
-    </div>
-
-    <div class="row" style="margin-top:14px">
+  <section class="workspace" id="workspace" aria-labelledby="inputTitle">
+    <div class="workspace-header">
       <div>
-        <label class="k" for="ratio">Summary length: <b id="ratioLabel">25%</b> of sentences</label>
-        <input type="range" id="ratio" min="10" max="50" step="5" value="25">
+        <span class="eyebrow">Document workspace · 01</span>
+        <h2 id="inputTitle">Start with a judgment or court order</h2>
       </div>
-      <div>
-        <label class="k" for="outLang">Output language</label>
-        <select id="outLang">
-          <option value="same">Same as document</option>
-          <option value="en">English</option>
-          <option value="hi">हिन्दी (Hindi)</option>
-          <option value="ta">தமிழ் (Tamil)</option>
-        </select>
-      </div>
-      <div style="margin-left:auto"><button class="btn" id="go">Summarise</button></div>
+      <span class="file-limit">PDF / DOCX / TXT · 10 MB max</span>
     </div>
-    <p class="k" style="font-size:.8rem;color:var(--muted);margin:10px 0 0">
-      The sample judgments translate between English, Hindi and Tamil <b>offline</b> (built in). For your own documents,
-      cross-language translation uses third-party online services and may send the extracted summary to that provider.
-      Legal terms may be mistranslated. Verify against the original and do not use this mode for confidential files unless
-      sending the summary to that service is acceptable.</p>
+
+    <div class="workspace-grid">
+      <div class="document-entry">
+        <div class="entry-topline">
+          <div class="tabs" role="tablist" aria-label="Document input method">
+            <button type="button" class="tab on" data-tab="text" role="tab" aria-selected="true" aria-controls="pane-text">Paste text</button>
+            <button type="button" class="tab" data-tab="file" role="tab" aria-selected="false" aria-controls="pane-file">Upload document</button>
+          </div>
+          <span class="entry-state" id="entryState" data-state="empty">No document added</span>
+        </div>
+
+        <div id="pane-text" class="tab-panel" role="tabpanel">
+          <label class="field-label" for="text">Judgment or order text</label>
+          <textarea id="text" placeholder="Paste the judgment or order text here (English, हिन्दी, or தமிழ்)…" aria-describedby="textHelp"></textarea>
+          <div class="text-foot" id="textHelp">
+            <span>English · हिन्दी · தமிழ்</span>
+            <span id="textWordCount" class="text-count" data-minimum="not-met">0 words · about 30 required</span>
+          </div>
+        </div>
+
+        <div id="pane-file" class="tab-panel" role="tabpanel" hidden>
+          <div class="drop" id="dropZone">
+            <div class="drop-content">
+              <div class="drop-title">Choose a document or drop it here</div>
+              <div class="drop-subtitle">PDF, DOCX, or TXT · up to 10 MB</div>
+              <div>
+                <input class="file-picker" type="file" id="file" accept=".pdf,.docx,.txt" aria-label="Choose a PDF, DOCX, or TXT document">
+                <label class="file-button" for="file">Choose file</label>
+              </div>
+              <div class="file-meta" id="fileMeta" hidden aria-live="polite">
+                <span class="file-name" id="fileName"></span>
+                <span class="file-size" id="fileSize"></span>
+                <button type="button" class="text-link" id="removeFile" aria-label="Remove selected file">Remove</button>
+              </div>
+            </div>
+          </div>
+          <p class="hint">Scanned PDFs without selectable text may need OCR before upload.</p>
+        </div>
+      </div>
+
+      <aside class="options-panel" aria-labelledby="settingsTitle">
+        <div class="options-heading">
+          <span class="step-index" aria-hidden="true">02</span>
+          <div>
+            <h3 id="settingsTitle">Summary settings</h3>
+            <p>Choose the length and language for the report.</p>
+          </div>
+        </div>
+
+        <div class="example-row">
+          <label for="sampleSelect">Or start with an example</label>
+          <select id="sampleSelect" aria-label="Load an example document">
+            <option value="">Choose a sample…</option>
+            {% for s in samples %}
+              <option value="{{ s.id }}" data-sample="{{ s.id }}">{{ s.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="settings">
+          <div class="setting">
+            <label for="ratio">Summary length <span class="range-label" id="ratioLabel">25%</span></label>
+            <input type="range" id="ratio" min="10" max="50" step="5" value="25" aria-label="Summary length">
+          </div>
+          <div class="setting">
+            <label for="outLang">Output language</label>
+            <select id="outLang">
+              <option value="same">Same as document</option>
+              <option value="en">English</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+            </select>
+            <p class="setting-note" id="translationAvailability" data-ready="{{ 'true' if translation_ready else 'false' }}" hidden></p>
+          </div>
+          <div class="primary-action">
+            <button type="button" class="button primary" id="go">Generate summary <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <p class="privacy-inline">Cross-language translation may send extracted summary text to a third-party service. <a href="#privacy">Privacy and limitations</a></p>
+    <details class="disclosure" id="privacy">
+      <summary>Privacy and limitations</summary>
+      <p>Sample judgments translate between English, Hindi, and Tamil offline (built in). For your own documents, cross-language translation uses third-party online services and may send the extracted summary text to that provider. Legal terms may be mistranslated. Chat uses Google Gemini first and falls back to xAI Grok if Gemini times out or fails, when both API keys are configured. Your question and active document text/relevant excerpts are sent to whichever provider handles that request. Do not use chat or cross-language translation for confidential documents unless that transfer is acceptable. Verify important findings, qualifications, and operative directions against the original judgment. Nyaya Saar provides a reading aid, not legal advice, and is not an official government or court service.</p>
+    </details>
   </section>
 
-  <div id="status"></div>
+  <div id="status" role="status" aria-live="polite" aria-atomic="true"></div>
 
-  <section id="result" hidden>
+  <section id="chatSection" aria-labelledby="chatTitle">
+    <div class="chat-head">
+      <div>
+        <span class="eyebrow">Ask Nyaya · 03</span>
+        <h2 id="chatTitle">Talk through the judgment. Understand the law.</h2>
+        <p>Ask follow-up questions about the document, or switch to general legal information. Document answers are designed to stay close to the text you provide.</p>
+      </div>
+      <span class="chat-connection" id="chatConnection" data-ready="{{ 'true' if chat_ready else 'false' }}">{{ chat_provider_label }}</span>
+    </div>
+    <div class="chat-body">
+      <div class="chat-mode-row">
+        <div class="chat-mode-tabs" role="group" aria-label="Chat topic">
+          <button class="chat-mode" type="button" id="documentMode" aria-pressed="true">This document</button>
+          <button class="chat-mode" type="button" id="generalMode" aria-pressed="false">General legal question</button>
+        </div>
+        <p class="chat-privacy" id="chatModeDescription">Answers use the active pasted text or selected upload. You can ask about facts, findings, cited provisions, and the final order.</p>
+      </div>
+      <p class="chat-notice" id="chatSetupNotice" {{ 'hidden' if chat_ready else '' }}>Chat is not configured. Set <code>GEMINI_API_KEY</code> and/or <code>XAI_API_KEY</code> on your computer, then restart the app. See README.md for steps.</p>
+      <div class="chat-thread" id="chatThread" role="log" aria-live="polite" aria-relevant="additions text">
+        <div class="chat-message assistant">
+          <div class="chat-avatar" aria-hidden="true">N</div>
+          <div class="chat-bubble" id="chatWelcome">Hello. I can help explain what this judgment says. Add a document above, then ask about its facts, reasoning, cited sections, or operative order.</div>
+        </div>
+      </div>
+      <div class="chat-suggestions" id="chatSuggestions" aria-label="Suggested questions">
+        <span class="chat-suggestions-label">Try asking</span>
+        <button class="chat-suggestion" type="button" data-question="What is the final order of the court?">What is the final order?</button>
+        <button class="chat-suggestion" type="button" data-question="Which legal provisions are mentioned in this document?">Which laws are cited?</button>
+        <button class="chat-suggestion" type="button" data-question="Explain the court's reasoning in simple language.">Explain the reasoning</button>
+      </div>
+      <form class="chat-composer" id="chatForm">
+        <label class="sr-only" for="chatInput">Ask a question</label>
+        <textarea id="chatInput" rows="2" maxlength="2000" placeholder="Ask a question… (Enter to send, Shift+Enter for a new line)" required></textarea>
+        <div class="chat-send-col">
+          <button class="button primary" type="submit" id="chatSend">Ask Nyaya <span aria-hidden="true">↗</span></button>
+          <button class="chat-clear" type="button" id="chatClear">Clear conversation</button>
+        </div>
+      </form>
+      <p class="chat-footnote">Not legal advice. AI answers can be wrong. Verify important points against the original source and current official law. Depending on configuration and availability, your question and relevant document text may be sent to Google Gemini and/or xAI Grok.</p>
+    </div>
+  </section>
+
+  <section id="result" hidden aria-labelledby="resultTitle">
     <div class="print-only" id="printHead"><h1>Legal Document Summary</h1><div id="printMeta"></div></div>
-    <div class="card" id="exportBar" style="margin-bottom:18px">
-      <div class="row">
-        <div id="chips" style="flex:1"></div>
-        <button class="btn ghost" id="copy">Copy summary</button>
-        <button class="btn ghost" id="download">Download .txt</button>
-        <button class="btn ghost" id="pdf">Download PDF</button>
+    <div class="result-top">
+      <div>
+        <h2 id="resultTitle">Document summary</h2>
+        <p class="result-subtitle">Review the extracted details and source traceability before relying on this summary.</p>
       </div>
-      <p class="hint">PDF: in the window that opens, set the destination to <b>Save as PDF</b> and press Save.</p>
     </div>
-    <div class="grid2">
-      <div class="card"><h2 id="infoTitle">Key details</h2><table class="info" id="info"></table></div>
-      <div class="card">
-        <div class="tabs" id="viewTabs" hidden></div>
-        <h2 id="sumTitle">Summary</h2>
+    <div id="exportBar">
+      <div id="chips" aria-label="Summary statistics"></div>
+      <div class="export-actions" aria-label="Summary actions">
+        <button type="button" class="button" id="copy">Copy summary</button>
+        <button type="button" class="button" id="download">Download TXT</button>
+        <button type="button" class="button" id="pdf">Print / save PDF</button>
+      </div>
+    </div>
+    <div class="result-grid">
+      <section class="result-panel" aria-labelledby="infoTitle">
+        <h3 id="infoTitle">Key information</h3>
+        <table class="info" id="info" aria-label="Detected case details"><tbody></tbody></table>
+      </section>
+      <section class="result-panel" aria-labelledby="sumTitle">
+        <div class="tabs" id="viewTabs" role="tablist" aria-label="Summary language" hidden></div>
+        <h3 id="sumTitle">Summary</h3>
         <div id="summary"></div>
-      </div>
+      </section>
     </div>
-    <section class="card" id="claimCheckCard" aria-labelledby="claimCheckTitle">
-      <h2 id="claimCheckTitle">Source traceability check</h2>
-      <p class="hint">Each selected summary sentence is checked against the extracted source text. “Supported” means a text match, not that the statement is legally correct or complete. For PDFs, a page number is shown only when the match points unambiguously to one page; other files show extracted sentence references only.</p>
-      <div id="claimCheckSummary" class="hint"></div>
+    <section class="claim-panel" id="claimCheckCard" aria-labelledby="claimCheckTitle">
+      <h3 id="claimCheckTitle">Source traceability</h3>
+      <p class="claim-intro">These labels and match scores are heuristic checks against extracted source text—not proof of legal correctness or completeness. A PDF page is shown only when the match points unambiguously to one page; other files show extracted sentence references where available.</p>
+      <div id="claimCheckSummary"></div>
       <div id="claimCheckItems"></div>
-      <p class="hint">Do not interpret these figures as a legal accuracy percentage. Check every item against the original judgment, especially the operative order and qualifications.</p>
+      <p class="claim-caveat">Check evidence in context and verify the operative order and qualifications against the original judgment.</p>
     </section>
     <div class="print-only" id="printFoot">Automatically generated summary (Nyaya Saar). Extractive lines are selected from the source; translated views may be machine-translated. Metadata and outcome detection are heuristic. This is a reading aid, not legal advice — verify all details against the original judgment.</div>
   </section>
 </main>
 
-<footer>Extractive summariser (TF-IDF + TextRank with legal cue words). Output is an aid for reading — always verify against the original judgment. Sample documents are fictional. · v{{ version }}</footer>
+<footer class="site-footer" id="about">
+  <details class="about-details">
+    <summary>About this tool</summary>
+    <p>Nyaya Saar is an extractive legal document summarizer (TF-IDF + TextRank with legal cue words). Sample documents are fictional. Summaries and metadata are provided as a reading aid and should be checked against the original source. · v{{ version }}</p>
+  </details>
+</footer>
 
 <script>
 const $ = s => document.querySelector(s);
 let mode = "text", last = null, view = "original";
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const translationAvailability = $("#translationAvailability");
+const entryState = $("#entryState");
+const textWordCount = $("#textWordCount");
+function updateTextCount() {
+  const count = $("#text").value.trim().split(/\s+/).filter(Boolean).length;
+  textWordCount.textContent = count + (count === 1 ? " word" : " words") + (count < 30 ? " · about 30 required" : " · ready to submit");
+  textWordCount.dataset.minimum = count >= 30 ? "met" : "not-met";
+  if (mode === "text") {
+    const ready = count >= 30;
+    entryState.dataset.state = ready ? "ready" : (count ? "editing" : "empty");
+    entryState.textContent = count ? (ready ? "Text ready" : "Text being prepared") : "No document added";
+  }
+}
+function updateEntryForMode() {
+  if (mode === "file") {
+    const file = $("#file").files[0];
+    const ready = Boolean(file);
+    entryState.dataset.state = ready ? "ready" : "empty";
+    entryState.textContent = ready ? "File selected" : "No file selected";
+  } else {
+    updateTextCount();
+  }
+}
+$("#text").addEventListener("input", updateTextCount);
+updateTextCount();
+if (translationAvailability.dataset.ready === "true") {
+  translationAvailability.textContent = "Cross-language translation is available.";
+  translationAvailability.hidden = false;
+} else if (translationAvailability.dataset.ready === "false") {
+  translationAvailability.textContent = "Translation is unavailable; the original-language summary remains available.";
+  translationAvailability.hidden = false;
+}
 
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function showMsg(kind, text) {
+  const status = $("#status");
+  status.innerHTML = text ? `<div class="msg ${kind === "err" ? "err" : "warn"}" role="${kind === "err" ? "alert" : "status"}">${esc(text)}</div>` : "";
+}
+
+// Keep the existing data-tab mode hooks and update their accessible state.
 document.querySelectorAll(".tab[data-tab]").forEach(b => b.onclick = () => {
   mode = b.dataset.tab;
-  document.querySelectorAll(".tab[data-tab]").forEach(x => x.classList.toggle("on", x === b));
-  $("#pane-text").hidden = mode !== "text"; $("#pane-file").hidden = mode !== "file";
+  document.querySelectorAll(".tab[data-tab]").forEach(x => {
+    const active = x === b;
+    x.classList.toggle("on", active);
+    x.setAttribute("aria-selected", String(active));
+  });
+  $("#pane-text").hidden = mode !== "text";
+  $("#pane-file").hidden = mode !== "file";
+  updateEntryForMode();
 });
 $("#ratio").oninput = e => $("#ratioLabel").textContent = e.target.value + "%";
 
-document.querySelectorAll("[data-sample]").forEach(b => b.onclick = async () => {
-  const r = await fetch("/api/samples/" + b.dataset.sample); const j = await r.json();
-  $("#text").value = j.text;
-  document.querySelector('.tab[data-tab="text"]').click();
+function formatFileSize(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) return "";
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+function updateFileDetails(file) {
+  $("#fileMeta").hidden = !file;
+  $("#fileName").textContent = file ? file.name : "";
+  $("#fileSize").textContent = file ? formatFileSize(file.size) : "";
+}
+function isSupportedFile(file) {
+  return /\.(pdf|docx|txt)$/i.test(file.name || "");
+}
+function fileValidationError(file) {
+  if (!isSupportedFile(file)) return "Unsupported file type. Please choose a PDF, DOCX, or TXT document.";
+  if (file.size > MAX_UPLOAD_BYTES) return "Files must be 10 MB or smaller.";
+  return "";
+}
+$("#file").addEventListener("change", e => {
+  const file = e.target.files[0] || null;
+  const validationError = file && fileValidationError(file);
+  if (validationError) {
+    e.target.value = "";
+    updateFileDetails(null);
+    return showMsg("err", validationError);
+  }
+  updateFileDetails(file);
+  updateEntryForMode();
+  showMsg("", "");
+});
+$("#removeFile").onclick = () => {
+  $("#file").value = "";
+  updateFileDetails(null);
+  updateEntryForMode();
+  $("#file").focus();
+};
+const dropZone = $("#dropZone");
+["dragenter", "dragover"].forEach(eventName => dropZone.addEventListener(eventName, e => {
+  e.preventDefault();
+  dropZone.classList.add("is-dragging");
+}));
+["dragleave", "drop"].forEach(eventName => dropZone.addEventListener(eventName, e => {
+  e.preventDefault();
+  dropZone.classList.remove("is-dragging");
+}));
+dropZone.addEventListener("drop", e => {
+  const files = e.dataTransfer && e.dataTransfer.files;
+  if (!files || !files.length) return;
+  const file = files[0];
+  const validationError = fileValidationError(file);
+  if (validationError) return showMsg("err", validationError);
+  try {
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    $("#file").files = transfer.files;
+    updateFileDetails(file);
+    updateEntryForMode();
+    showMsg("", "");
+  } catch {
+    showMsg("warn", "Drag and drop is unavailable in this browser. Please use Choose file instead.");
+  }
 });
 
-function showMsg(kind, text){ $("#status").innerHTML = text ? `<div class="msg ${kind}">${esc(text)}</div>` : ""; }
-function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+// Preserve GET /api/samples/<name>; use the compact Jinja-rendered dropdown.
+$("#sampleSelect").addEventListener("change", async e => {
+  const select = e.target;
+  const sample = select.value;
+  if (!sample) return;
+  select.disabled = true;
+  try {
+    const r = await fetch("/api/samples/" + encodeURIComponent(sample));
+    let j;
+    try { j = await r.json(); }
+    catch { throw new Error("The sample service returned an unreadable response. Please try again."); }
+    if (!r.ok) throw new Error(j.error || "Unable to load the selected sample.");
+    $("#text").value = j.text;
+    document.querySelector('.tab[data-tab="text"]').click();
+    updateTextCount();
+    $("#text").focus();
+    showMsg("", "");
+  } catch (e) {
+    showMsg("err", e.message || "Unable to load the selected sample.");
+  } finally {
+    select.disabled = false;
+    select.value = "";
+  }
+});
 
 $("#go").onclick = async () => {
   const fd = new FormData();
   if (mode === "file") {
     const f = $("#file").files[0];
-    if (!f) return showMsg("err", "Please choose a file first.");
+    if (!f) return showMsg("err", "Choose a PDF, DOCX, or TXT file before generating a summary.");
+    const validationError = fileValidationError(f);
+    if (validationError) return showMsg("err", validationError);
     fd.append("file", f);
   } else {
-    if (!$("#text").value.trim()) return showMsg("err", "Please paste some text or try a sample.");
+    if (!$("#text").value.trim()) return showMsg("err", "Paste document text or choose an example before generating a summary.");
     fd.append("text", $("#text").value);
   }
   fd.append("ratio", $("#ratio").value / 100);
   fd.append("out_lang", $("#outLang").value);
-  const btn = $("#go"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Summarising…';
+  const btn = $("#go");
+  $("#result").hidden = true;
+  last = null;
+  view = "original";
+  btn.disabled = true;
+  btn.setAttribute("aria-busy", "true");
+  btn.innerHTML = '<span class="spin" aria-hidden="true"></span>Generating…';
   showMsg("", "");
   try {
     const r = await fetch("/api/summarize", {method: "POST", body: fd});
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || "Something went wrong");
-    last = j; view = (j.translation && !j.translation.error) ? "translated" : "original";
+    const raw = await r.text();
+    let j;
+    try { j = raw ? JSON.parse(raw) : {}; }
+    catch {
+      if (r.status === 413) throw new Error("This file exceeds the 10 MB upload limit.");
+      if (!r.ok) {
+        const message = raw.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 240);
+        throw new Error(message || `The request failed (HTTP ${r.status}). Please try again.`);
+      }
+      throw new Error("The server returned an unreadable response. Please try again.");
+    }
+    if (!r.ok) {
+      if (r.status === 413) throw new Error("This file exceeds the 10 MB upload limit.");
+      throw new Error(j.error || "Something went wrong while generating the summary.");
+    }
+    if (!j || !j.language || !j.stats || !Array.isArray(j.sections)) {
+      throw new Error("The server response was incomplete. Please try again.");
+    }
+    last = j;
+    view = (j.translation && !j.translation.error && Array.isArray(j.translation.sections)) ? "translated" : "original";
     render();
     if (j.translation && j.translation.error) showMsg("warn", j.translation.error);
-    $("#result").hidden = false; $("#result").scrollIntoView({behavior: "smooth"});
-  } catch (e) { showMsg("err", e.message); }
-  btn.disabled = false; btn.textContent = "Summarise";
+    else if (j.translation && view === "original" && $("#outLang").value !== "same") {
+      showMsg("warn", "A translated view was not returned. The original-language summary is shown.");
+    }
+    $("#result").hidden = false;
+    $("#result").scrollIntoView({behavior: "smooth", block: "start"});
+  } catch (e) {
+    showMsg("err", e.message || "Unable to generate a summary. Please try again.");
+  } finally {
+    btn.disabled = false;
+    btn.removeAttribute("aria-busy");
+    btn.innerHTML = 'Generate summary <span aria-hidden="true">↗</span>';
+  }
 };
 
-function current(){
+function current() {
   const t = last.translation;
-  if (view === "translated" && t && !t.error) return {sections: t.sections, info: t.key_info, text: t.summary_text};
+  if (view === "translated" && t && !t.error && Array.isArray(t.sections)) {
+    return {
+      sections: t.sections,
+      info: Array.isArray(t.key_info) ? t.key_info : last.key_info,
+      text: typeof t.summary_text === "string" ? t.summary_text : t.sections.flatMap(s => s.sentences || []).join(" ")
+    };
+  }
   return {sections: last.sections, info: last.key_info, text: last.summary_text};
 }
-
-function render(){
+function render() {
   const j = last, s = j.stats, c = current();
   $("#chips").innerHTML = [
-    "Language: " + j.language.name, s.sentences_selected + " of " + s.sentences_total + " sentences",
-    s.words_original + " → " + s.words_summary + " words", s.reduction_percent + "% shorter"
+    "Language: " + j.language.name,
+    s.sentences_selected + " of " + s.sentences_total + " sentences",
+    s.words_original + " → " + s.words_summary + " words",
+    s.reduction_percent + "% shorter"
   ].map(t => `<span class="chip">${esc(t)}</span>`).join("");
 
   const tabs = $("#viewTabs");
   if (j.translation && !j.translation.error) {
     tabs.hidden = false;
-    tabs.innerHTML = `<button class="tab ${view==="original"?"on":""}" data-v="original">${esc(j.language.name)} (original)</button>
-                      <button class="tab ${view==="translated"?"on":""}" data-v="translated">${esc(j.translation.target_name)}</button>`;
-    tabs.querySelectorAll("button").forEach(b => b.onclick = () => { view = b.dataset.v; render(); });
+    tabs.innerHTML = `<button type="button" class="tab ${view === "original" ? "on" : ""}" data-v="original" role="tab" aria-selected="${view === "original"}">${esc(j.language.name)} (original)</button>
+                      <button type="button" class="tab ${view === "translated" ? "on" : ""}" data-v="translated" role="tab" aria-selected="${view === "translated"}">${esc(j.translation.target_name)}</button>`;
+    tabs.querySelectorAll("button[data-v]").forEach(b => b.onclick = () => { view = b.dataset.v; render(); });
   } else tabs.hidden = true;
 
-  $("#info").innerHTML = c.info.length
-    ? c.info.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(r.value)}</td></tr>`).join("")
-    : '<tr><td colspan="2">No structured details detected.</td></tr>';
+  const infoRows = Array.isArray(c.info) ? c.info : [];
+  $("#info").innerHTML = `<tbody>${infoRows.length
+    ? infoRows.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(r.value)}</td></tr>`).join("")
+    : '<tr><td colspan="2">No structured details detected.</td></tr>'}</tbody>`;
 
-  $("#summary").innerHTML = c.sections.map(sec =>
+  const sections = Array.isArray(c.sections) ? c.sections : [];
+  $("#summary").innerHTML = sections.map(sec =>
     `<div class="sec ${sec.key === "Order" ? "order" : ""}"><h3>${esc(sec.title)}</h3><ul>${
-      sec.sentences.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`).join("");
+      (Array.isArray(sec.sentences) ? sec.sentences : []).map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`).join("") || '<p class="hint">No summary sections were returned.</p>';
 
   const check = j.claim_check;
   if (check) {
@@ -246,11 +901,10 @@ function render(){
     $("#claimCheckItems").innerHTML = (check.claims || []).map(item => {
       const sourceNo = item.source_page != null
         ? "PDF page #" + item.source_page + (item.source_sentence_number == null ? "" : " · extracted source sentence #" + item.source_sentence_number)
-        : (item.source_sentence_number == null
-          ? "No close source sentence found"
-          : "Extracted source sentence #" + item.source_sentence_number);
+        : (item.source_sentence_number == null ? "No close source sentence found" : "Extracted source sentence #" + item.source_sentence_number);
+      const score = Math.round((item.match_score || 0) * 100);
       return `<div class="claim-item">
-        <div class="claim-status">${esc(item.status)} · match ${Math.round((item.match_score || 0) * 100)}%</div>
+        <div class="claim-status">${esc(item.status)} · match ${esc(score)}%</div>
         <p>${esc(item.claim)}</p>
         <div class="claim-evidence"><strong>${esc(sourceNo)}</strong><br>${esc(item.evidence || "No evidence snippet identified.")}</div>
         <p class="hint">${esc(item.reason)}</p>
@@ -262,10 +916,189 @@ function render(){
   }
 }
 
+
+// Conversational legal Q&A. The document itself is sent only when the user
+// asks a document-scoped question; keys remain on the Flask server.
+let chatScope = "document";
+let chatHistory = [];
+let chatBusy = false;
+let documentFingerprint = null;
+const chatThread = $("#chatThread");
+const chatInput = $("#chatInput");
+const chatSend = $("#chatSend");
+const chatConnection = $("#chatConnection");
+const chatSetupNotice = $("#chatSetupNotice");
+const documentMode = $("#documentMode");
+const generalMode = $("#generalMode");
+const chatModeDescription = $("#chatModeDescription");
+const chatWelcome = $("#chatWelcome");
+const chatSuggestions = $("#chatSuggestions");
+const documentQuestions = [
+  ["What is the final order?", "What is the final order of the court?"],
+  ["Which laws are cited?", "Which legal provisions are mentioned in this document?"],
+  ["Explain the reasoning", "Explain the court's reasoning in simple language."]
+];
+const generalQuestions = [
+  ["Explain bail in India", "Explain the difference between regular bail and anticipatory bail in India."],
+  ["What is an appeal?", "What is an appeal in Indian law, in simple terms?"],
+  ["How do limitation periods work?", "Explain limitation periods in Indian law at a general level." ]
+];
+function setChatScope(scope) {
+  chatScope = scope === "general" ? "general" : "document";
+  documentMode.setAttribute("aria-pressed", String(chatScope === "document"));
+  generalMode.setAttribute("aria-pressed", String(chatScope === "general"));
+  chatModeDescription.textContent = chatScope === "document"
+    ? "Answers use the active pasted text or selected upload. Ask about facts, findings, cited provisions, and the final order."
+    : "Ask about Indian legal concepts and procedures. Answers are general information and may need verification against current law.";
+  chatWelcome.textContent = chatScope === "document"
+    ? "Hello. I can help explain what this judgment says. Add a document above, then ask about its facts, reasoning, cited sections, or operative order."
+    : "Hello. Ask a general legal question. I will assume Indian law unless you specify a different jurisdiction, and I will flag when current legal verification is needed.";
+  chatSuggestions.querySelectorAll("button[data-question]").forEach(b => b.remove());
+  const items = chatScope === "document" ? documentQuestions : generalQuestions;
+  for (const [label, question] of items) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chat-suggestion"; b.textContent = label; b.dataset.question = question;
+    chatSuggestions.appendChild(b);
+  }
+  // Avoid carrying document-specific answers into a general-law conversation or vice versa.
+  chatHistory = [];
+  documentFingerprint = null;
+  chatThread.innerHTML = "";
+  const welcome = document.createElement("div"); welcome.className = "chat-message assistant";
+  const avatar = document.createElement("div"); avatar.className = "chat-avatar"; avatar.setAttribute("aria-hidden", "true"); avatar.textContent = "N";
+  const bubble = document.createElement("div"); bubble.className = "chat-bubble"; bubble.textContent = chatWelcome.textContent;
+  welcome.append(avatar, bubble); chatThread.appendChild(welcome);
+  chatInput.placeholder = chatScope === "document" ? "Ask something about this judgment…" : "Ask about Indian law…";
+}
+documentMode.addEventListener("click", () => setChatScope("document"));
+generalMode.addEventListener("click", () => setChatScope("general"));
+function addChatMessage(role, text, extraClass = "", providerName = "") {
+  const row = document.createElement("div");
+  row.className = "chat-message " + (role === "user" ? "user" : "assistant") + (extraClass ? " " + extraClass : "");
+  const avatar = document.createElement("div"); avatar.className = "chat-avatar";
+  avatar.setAttribute("aria-hidden", "true"); avatar.textContent = role === "user" ? "Y" : "N";
+  const bubble = document.createElement("div"); bubble.className = "chat-bubble";
+  // Escape first, then add a tiny allow-listed subset of Markdown for readable answers.
+  if (role === "assistant" && !extraClass) {
+    bubble.innerHTML = esc(text)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/(^|\n)[*-]\s+/g, "$1• ");
+  } else {
+    bubble.textContent = text;
+  }
+  if (role === "assistant" && providerName && !extraClass) {
+    const providerNote = document.createElement("span");
+    providerNote.className = "chat-provider-note";
+    providerNote.textContent = "Answered by " + providerName;
+    bubble.appendChild(providerNote);
+  }
+  row.append(avatar, bubble); chatThread.appendChild(row);
+  chatThread.scrollTop = chatThread.scrollHeight;
+  return row;
+}
+function activeDocumentFingerprint() {
+  if (mode === "file") {
+    const file = $("#file").files[0];
+    return file ? [file.name, file.size, file.lastModified].join("|") : "file:none";
+  }
+  const text = $("#text").value;
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) { hash ^= text.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+  return text.length + "|" + (hash >>> 0);
+}
+function resetChatForChangedDocument() {
+  chatHistory = [];
+  chatThread.innerHTML = "";
+  addChatMessage("assistant", "The active document changed, so I cleared the earlier conversation to avoid mixing details from different sources.");
+}
+function activeDocumentForm() {
+  const fd = new FormData();
+  if (chatScope === "document") {
+    if (mode === "file") {
+      const file = $("#file").files[0];
+      if (!file) throw new Error("Choose a file above, or switch to Paste text and add the judgment before asking about the document.");
+      const validationError = fileValidationError(file);
+      if (validationError) throw new Error(validationError);
+      fd.append("file", file);
+    } else {
+      const text = $("#text").value.trim();
+      if (text.split(/\s+/).filter(Boolean).length < 30) throw new Error("Paste at least about 30 words of judgment/order text, or upload a readable file.");
+      fd.append("text", text);
+    }
+  }
+  return fd;
+}
+async function askChat(question) {
+  if (chatBusy) return;
+  const q = String(question || "").trim();
+  if (!q) return;
+  if (q.length > 2000) {
+    addChatMessage("assistant", "Please keep each question to 2,000 characters or fewer.", "error");
+    return;
+  }
+  if (chatScope === "document") {
+    const fingerprint = activeDocumentFingerprint();
+    if (documentFingerprint !== null && fingerprint !== documentFingerprint) resetChatForChangedDocument();
+    documentFingerprint = fingerprint;
+  }
+  let fd;
+  try { fd = activeDocumentForm(); }
+  catch (e) { addChatMessage("assistant", e.message, "error"); return; }
+  fd.append("scope", chatScope);
+  fd.append("question", q);
+  fd.append("history", JSON.stringify(chatHistory.slice(-10)));
+  addChatMessage("user", q);
+  chatInput.value = "";
+  chatBusy = true;
+  chatSend.disabled = true;
+  chatSend.innerHTML = '<span class="spin" aria-hidden="true"></span> Thinking…';
+  const loading = document.createElement("div"); loading.className = "chat-message assistant"; loading.id = "chatLoading";
+  const av = document.createElement("div"); av.className = "chat-avatar"; av.setAttribute("aria-hidden", "true"); av.textContent = "N";
+  const b = document.createElement("div"); b.className = "chat-bubble"; b.innerHTML = '<span class="chat-loading"><span class="spin" aria-hidden="true"></span> Reviewing your question…</span>';
+  loading.append(av, b); chatThread.appendChild(loading); chatThread.scrollTop = chatThread.scrollHeight;
+  try {
+    const response = await fetch("/api/chat", {method: "POST", body: fd});
+    const raw = await response.text();
+    let result;
+    try { result = raw ? JSON.parse(raw) : {}; }
+    catch { throw new Error("The server returned an unreadable response. Please try again."); }
+    if (!response.ok) throw new Error(result.error || `The chat request failed (HTTP ${response.status}).`);
+    const answer = String(result.answer || "").trim();
+    if (!answer) throw new Error("The chat service returned an empty answer. Try rephrasing your question.");
+    chatHistory.push({role: "user", content: q}, {role: "model", content: answer});
+    chatHistory = chatHistory.slice(-10);
+    addChatMessage("assistant", answer + (result.context_trimmed ? "\n\nNote: This is a long document, so I used selected relevant excerpts rather than the entire text. Check the original judgment for full context." : ""), "", result.provider || "AI provider");
+  } catch (e) {
+    addChatMessage("assistant", e.message || "Unable to answer right now. Please try again.", "error");
+  } finally {
+    const pending = $("#chatLoading"); if (pending) pending.remove();
+    chatBusy = false; chatSend.disabled = false;
+    chatSend.innerHTML = 'Ask Nyaya <span aria-hidden="true">↗</span>';
+    chatInput.focus();
+  }
+}
+$("#chatForm").addEventListener("submit", e => { e.preventDefault(); askChat(chatInput.value); });
+chatInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("#chatForm").requestSubmit(); }
+});
+chatSuggestions.addEventListener("click", e => {
+  const button = e.target.closest("button[data-question]");
+  if (!button) return;
+  chatInput.value = button.dataset.question || "";
+  chatInput.focus();
+});
+$("#chatClear").addEventListener("click", () => setChatScope(chatScope));
+
 $("#copy").onclick = async () => {
-  try { await navigator.clipboard.writeText(current().text); $("#copy").textContent = "Copied ✓"; }
-  catch { $("#copy").textContent = "Copy failed"; }
-  setTimeout(() => $("#copy").textContent = "Copy summary", 1500);
+  const button = $("#copy");
+  try {
+    await navigator.clipboard.writeText(current().text);
+    button.textContent = "Copied";
+  } catch {
+    button.textContent = "Copy failed";
+  }
+  setTimeout(() => button.textContent = "Copy summary", 1600);
 };
 $("#download").onclick = () => {
   const c = current();
@@ -273,15 +1106,17 @@ $("#download").onclick = () => {
     c.sections.map(s => s.title + "\n" + s.sentences.map(x => " - " + x).join("\n")).join("\n\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([body], {type: "text/plain;charset=utf-8"}));
-  a.download = "summary.txt"; a.click(); URL.revokeObjectURL(a.href);
+  a.download = "summary.txt";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 $("#pdf").onclick = () => {
   const j = last, s = j.stats;
   const shown = (view === "translated" && j.translation && !j.translation.error) ? j.translation.target_name : j.language.name;
   $("#printMeta").textContent = `Summary language: ${shown} · Original document: ${j.language.name} · ` +
-    `${s.sentences_selected} of ${s.sentences_total} sentences · ${s.words_original} → ${s.words_summary} words · ` +
-    new Date().toLocaleString();
-  const row = j.key_info.find(r => /\d+\s*\/\s*\d{4}/.test(r.value));
+    `${s.sentences_selected} of ${s.sentences_total} sentences · ${s.words_original} → ${s.words_summary} words · ` + new Date().toLocaleString();
+  const rows = Array.isArray(j.key_info) ? j.key_info : [];
+  const row = rows.find(r => /\d+\s*\/\s*\d{4}/.test(r.value));
   const m = row && row.value.match(/\d+\s*\/\s*\d{4}/);
   const old = document.title;
   document.title = "Legal-Summary" + (m ? "-" + m[0].replace(/\s+/g, "").replace("/", "-") : "");
