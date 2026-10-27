@@ -53,6 +53,11 @@
   footer{max-width:1080px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:.82rem}
   .print-only{display:none}
   .hint{font-size:.8rem;color:var(--muted);margin:6px 0 0}
+  .claim-item{border-top:1px solid var(--line);padding:10px 0}
+  .claim-item:first-child{border-top:0}
+  .claim-status{font-weight:700;font-size:.8rem}
+  .claim-evidence{margin:5px 0 0;padding-left:12px;border-left:2px solid var(--line);color:var(--muted);font-size:.88rem}
+  .claim-item p{margin:5px 0}
   @media print{
     :root{--bg:#fff;--card:#fff;--ink:#111;--muted:#444;--line:#bbb;--accent:#1f4e79;--soft:#eef3f8;--gold:#8a5a00}
     @page{margin:16mm}
@@ -145,6 +150,13 @@
         <div id="summary"></div>
       </div>
     </div>
+    <section class="card" id="claimCheckCard" aria-labelledby="claimCheckTitle">
+      <h2 id="claimCheckTitle">Source traceability check</h2>
+      <p class="hint">Each selected summary sentence is checked against the extracted source text. “Supported” means a text match, not that the statement is legally correct or complete. Sentence numbers refer to extracted text, not PDF page numbers.</p>
+      <div id="claimCheckSummary" class="hint"></div>
+      <div id="claimCheckItems"></div>
+      <p class="hint">Do not interpret these figures as a legal accuracy percentage. Check every item against the original judgment, especially the operative order and qualifications.</p>
+    </section>
     <div class="print-only" id="printFoot">Automatically generated summary (Nyaya Saar). Extractive lines are selected from the source; translated views may be machine-translated. Metadata and outcome detection are heuristic. This is a reading aid, not legal advice — verify all details against the original judgment.</div>
   </section>
 </main>
@@ -225,6 +237,27 @@ function render(){
   $("#summary").innerHTML = c.sections.map(sec =>
     `<div class="sec ${sec.key === "Order" ? "order" : ""}"><h3>${esc(sec.title)}</h3><ul>${
       sec.sentences.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`).join("");
+
+  const check = j.claim_check;
+  if (check) {
+    const counts = check.claim_counts || {};
+    $("#claimCheckSummary").textContent =
+      `Checked ${check.claims_total} summary lines · exact source matches: ${counts["Supported"] || 0} · partial lexical matches: ${counts["Partially Supported"] || 0} · flagged polarity differences: ${counts["Contradicted"] || 0} · not verifiable by this check: ${counts["Not Verifiable"] || 0}`;
+    $("#claimCheckItems").innerHTML = (check.claims || []).map(item => {
+      const sourceNo = item.source_sentence_number == null
+        ? "No close source sentence found"
+        : "Extracted source sentence #" + item.source_sentence_number;
+      return `<div class="claim-item">
+        <div class="claim-status">${esc(item.status)} · match ${Math.round((item.match_score || 0) * 100)}%</div>
+        <p>${esc(item.claim)}</p>
+        <div class="claim-evidence"><strong>${esc(sourceNo)}</strong><br>${esc(item.evidence || "No evidence snippet identified.")}</div>
+        <p class="hint">${esc(item.reason)}</p>
+      </div>`;
+    }).join("") || '<p class="hint">No summary lines were available to check.</p>';
+  } else {
+    $("#claimCheckSummary").textContent = "Source traceability check is unavailable for this response.";
+    $("#claimCheckItems").innerHTML = "";
+  }
 }
 
 $("#copy").onclick = async () => {
