@@ -88,7 +88,36 @@ def _candidate_score(claim: str, evidence: str) -> float:
     return 0.60 * char_ratio + 0.40 * f1
 
 
-def evaluate_claims(source_text: str, claims: list[str], lang: str = "en") -> dict:
+def _find_source_page(claim: str, source_pages: list[str] | None) -> int | None:
+    """Return a PDF page only when source text points to one page unambiguously."""
+    if not source_pages:
+        return None
+
+    claim_n = _normalise(claim)
+    exact_pages = [
+        page_no for page_no, page in enumerate(source_pages, start=1)
+        if claim_n and claim_n in _normalise(page)
+    ]
+    if len(exact_pages) == 1:
+        return exact_pages[0]
+    if len(exact_pages) > 1:
+        return None
+
+    ranked = []
+    for page_no, page in enumerate(source_pages, start=1):
+        sentences = split_sentences(page)
+        page_score = max((_candidate_score(claim, sentence) for sentence in sentences), default=0.0)
+        ranked.append((page_score, page_no))
+    ranked.sort(reverse=True)
+    if not ranked or ranked[0][0] < 0.58:
+        return None
+    if len(ranked) > 1 and ranked[0][0] - ranked[1][0] < 0.05:
+        return None
+    return ranked[0][1]
+
+
+def evaluate_claims(source_text: str, claims: list[str], lang: str = "en",
+                   source_pages: list[str] | None = None) -> dict:
     """Classify each summary line by source-text matching and return defined metrics.
 
     Supported means a normalised exact source match. Partial support is a lexical
@@ -140,6 +169,7 @@ def evaluate_claims(source_text: str, claims: list[str], lang: str = "en") -> di
             "status": status,
             "evidence": best_sentence,
             "source_sentence_number": best_idx,
+            "source_page": _find_source_page(claim, source_pages),
             "match_score": round(score, 3),
             "reason": reason,
         })
