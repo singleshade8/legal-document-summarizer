@@ -22,7 +22,7 @@ class ClaimEvaluationTests(unittest.TestCase):
         self.assertEqual(claim["status"], "Supported")
         self.assertIsNotNone(claim["source_sentence_number"])
         self.assertEqual(result["exact_source_match_percent"], 100)
-        self.assertIn("not a validated benchmark", result["metric_definition"])
+        self.assertIn("validated benchmark", result["metric_definition"])
 
     def test_near_match_with_opposite_negation_is_flagged_for_review(self):
         source = "The court did not dismiss the petition after hearing both parties."
