@@ -61,7 +61,8 @@ class PdfCleanupTests(unittest.TestCase):
             "Lalita Kumari v. State of U.P.\nPage 3\nThird body paragraph has enough content.\nFooter 3",
         ]
         cleaned = _clean_repeated_page_margins(pages)
-        self.assertTrue(all("Lalita Kumari v. State of U.P." not in page for page in cleaned))
+        self.assertIn("Lalita Kumari v. State of U.P.", cleaned[0])
+        self.assertTrue(all("Lalita Kumari v. State of U.P." not in page for page in cleaned[1:]))
         self.assertTrue(all(not line.lower().startswith("page ") for page in cleaned for line in page.splitlines()))
         self.assertIn("First body paragraph", cleaned[0])
         self.assertIn("Second body paragraph", cleaned[1])
