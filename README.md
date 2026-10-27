@@ -4,15 +4,25 @@ A working web application that summarises court judgments / orders written in **
 and extracts the key legal details (case number, court, parties, dates, sections/Acts, outcome).
 Summarisation runs **fully offline** – no API key, no model download.
 
+## Windows quick start (for project demo/review)
+
+1. Install Python **3.10 or newer** from https://www.python.org/downloads/windows/ and enable **Add Python to PATH** during installation.
+2. Extract the project ZIP to a normal folder.
+3. Double-click `setup.bat`. It creates a local `.venv` virtual environment and installs the packages from `requirements.txt`.
+4. Once setup completes, double-click `run.bat`. It starts the Flask app and opens `http://127.0.0.1:5000` in your browser.
+5. Keep the command window open while using the app. Press **Ctrl+C** in that window to stop the server.
+
+The first setup needs an internet connection to install Python packages. If Windows cannot find Python, reinstall Python with PATH enabled, reopen the terminal, and try `setup.bat` again. `run.bat` also runs setup automatically if the virtual environment is missing.
+
 ## 1. Run it (2 minutes)
 
 ```bash
-pip install -r requirements.txt        # Python 3.9+
+pip install -r requirements.txt        # Python 3.10+
 python app.py                          # open http://localhost:5000
 ```
 Click one of the three sample judgments, press **Summarise**. You can also paste text or upload PDF / DOCX / TXT.
 
-Run the tests: `python -m unittest discover -s tests -v` (32 tests).
+Run the tests: `python -m unittest discover -s tests -v`.
 
 ### Cross-language output (the *Output language* dropdown)
 The summary of a document in its **own language always works offline**.
@@ -49,19 +59,43 @@ uses your system fonts. The file name is taken from the case number. The footer 
 | Translation | `translator.py` | Optional: Argos (offline) -> Google -> MyMemory, batching, retry/back-off, disk cache, graceful failure |
 | Web app | `app.py`, `templates/index.html` | Flask JSON API (`POST /api/summarize`) + single-page UI |
 
-Why extractive and rule-based? Court e-services need **traceable output**: every summary line is a verbatim
-sentence from the judgment, so nothing can be hallucinated. It is also fast, private (documents never leave
-the server) and runs on a low-cost server.
+### Accuracy and privacy — read before relying on a result
+
+This is a **prototype**, not a validated legal research system. Extractive summarisation selects text from the source
+rather than freely generating new sentences, which can reduce unsupported paraphrases. It does **not** guarantee
+accuracy: PDF text extraction, page headers/footers, sentence splitting, ranking, section classification, regex-based
+metadata and cross-language translation can all omit, distort or misclassify legally important context.
+
+The outcome field is a conservative heuristic. If it cannot identify explicit operative wording, it may be blank;
+a blank is preferable to guessing. Any detected outcome, case metadata and summary must be checked against the original
+judgment, especially before legal, filing or case-management use. The app does not currently have a validated,
+benchmark-based accuracy percentage, so do not present a percentage as measured accuracy.
+
+The source text is processed in the app, but when a user requests a different output language for their own document,
+the summary may be sent to a third-party public translation service. Do not use cross-language translation for
+confidential or sensitive documents unless that transfer is acceptable. This software is not legal advice.
+
+### Operative-order selection
+
+The summariser looks for a standalone late heading such as “Conclusion and Directions”, “Operative Portion” or “Final Order”. When found, it prioritises multiple direction-like sentences from that portion, subject to the summary budget. If no clear heading is found, it uses the existing cue-based fallback. This is a structural heuristic and cannot guarantee every direction or qualification is captured.
+
+### Source traceability check
+
+The summary result includes a `claim_check` object. Each selected summary line is checked against the extracted source and reports a screening label (`Supported`, `Partially Supported`, `Contradicted`, or `Not Verifiable`), the closest extracted source sentence, and a source-sentence number. For PDFs, a page number is shown only when the match points unambiguously to one page; ambiguous matches are left without a page number. DOCX/TXT extraction does not provide reliable page layout.
+
+These labels are conservative string/lexical heuristics. A `Supported` result means that text is present in the extracted source; it does not prove that the line is correctly contextualised, legally significant, complete, or consistent with the final operative order. `Contradicted` is only a polarity-cue warning and can be wrong. Coverage checks are cue-based and do not establish completeness. Treat the panel as a review aid, not as a legal-accuracy percentage.
 
 ## 3. API
 
 `POST /api/summarize` – multipart form: `file` **or** `text`, `ratio` (0.05–0.6, default 0.25), `out_lang` (`same|en|hi|ta`).
-Returns `language`, `stats`, `key_info`, `sections`, `summary_text`, `translation`.
+Returns `language`, `stats`, `key_info`, `sections`, `summary_text`, `translation`, and `claim_check` (heuristic source traceability).
 
 ## 4. Limitations (mention these in your report)
 * Extractive: no paraphrasing; Hindi/Tamil stemming is a simple prefix heuristic, not a full morphological analyser.
 * Scanned PDFs need OCR first (Tesseract `eng+hin+tam`) – detected but not performed.
-* Key-detail extraction is rule-based and tuned to common district-court formats; unusual layouts may be missed.
+* Key-detail extraction and outcome classification are rule-based heuristics. They may omit details or return no outcome; every result needs verification against the operative portion of the source.
+* Repeated PDF margin text is filtered conservatively, but irregular layouts and scanned documents may still extract incorrectly.
+* Cross-language translation uses third-party services for uncached user text; translated legal terminology must be verified by a qualified reader.
 * Marathi shares the Devanagari script and is detected as "Hindi".
 * Sample judgments are fictional.
 

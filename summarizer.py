@@ -249,6 +249,38 @@ def classify_sentence(sentence: str, lang: str, rel_pos: float = 1.0) -> str:
     return best[0] if best[1] > 0 else "Facts"
 
 
+# Explicit section headings are strong structural evidence. They are used only
+# when they appear in the later part of the judgment on a standalone line.
+_OPERATIVE_HEADING_RE = re.compile(
+    r"(?im)^\s*(?:"
+    r"CONCLUSION\s+(?:AND|&)\s+DIRECTIONS?|"
+    r"OPERATIVE\s+(?:PART|PORTION|ORDER)|FINAL\s+ORDER|"
+    r"(?:GENERAL\s+)?DIRECTIONS?|ORDER|CONCLUSION|DISPOSITION|"
+    r"अंतिम\s+आदेश|न्यायालय\s+के\s+निर्देश|निर्देश|आदेश|निष्कर्ष|"
+    r"இறுதி\s+உத்தரவு|உத்தரவு|வழிகாட்டுதல்கள்|முடிவு"
+    r")\s*[:\-–—]?\s*$"
+)
+_OPERATIVE_ACTION_RE = re.compile(
+    r"\b(?:shall|must|we direct|directed to|is directed|it is ordered|"
+    r"hereby ordered|is hereby allowed|is hereby dismissed)\b",
+    re.I,
+)
+
+
+def _operative_start_index(text: str, sentence_count: int) -> int | None:
+    """Find the first late standalone operative heading, if one is explicit."""
+    if not text or sentence_count == 0:
+        return None
+    min_offset = int(len(text) * 0.35)
+    for match in _OPERATIVE_HEADING_RE.finditer(text):
+        if match.start() < min_offset:
+            continue
+        boundary = len(split_sentences(text[:match.start()]))
+        if boundary < sentence_count:
+            return boundary
+    return None
+
+
 # --------------------------------------------------------------------------- main API
 def summarize(text: str, ratio: float = 0.25, min_sentences: int = 3, max_sentences: int = 15,
               lang: str | None = None):
@@ -264,14 +296,30 @@ def summarize(text: str, ratio: float = 0.25, min_sentences: int = 3, max_senten
     k = min(k, n)
     scores, adj = rank_sentences(sentences, lang) if n > 1 else ([1.0], [defaultdict(float)])
 
-    # Guarantee the operative portion: best order-like sentence in the last 25%
-    forced = None
-    tail_start = int(n * 0.75)
-    cands = [(scores[i], i) for i in range(tail_start, n) if _cue_hits(sentences[i], ORDER_CUES, lang)]
-    if cands:
-        forced = max(cands)[1]
+    # Prefer explicit late operative headings; fallback to a cue in the last quarter.
+    forced_order = []
+    operative_start = _operative_start_index(text, n)
+    if operative_start is not None:
+        operative_candidates = [
+            i for i in range(operative_start, n)
+            if _cue_hits(sentences[i], ORDER_CUES, lang)
+            or (lang == "en" and _OPERATIVE_ACTION_RE.search(sentences[i]))
+        ]
+        if not operative_candidates:
+            operative_candidates = [operative_start]
+        # Preserve several operative directions when the requested summary budget allows it.
+        budget = min(5, max(1, k))
+        forced_order = sorted(
+            operative_candidates, key=lambda i: scores[i], reverse=True
+        )[:budget]
+    else:
+        tail_start = int(n * 0.75)
+        cands = [(scores[i], i) for i in range(tail_start, n)
+                 if _cue_hits(sentences[i], ORDER_CUES, lang)]
+        if cands:
+            forced_order = [max(cands)[1]]
 
-    chosen = [forced] if forced is not None else []
+    chosen = list(forced_order)
     for i in sorted(range(n), key=lambda x: scores[x], reverse=True):
         if len(chosen) >= k:
             break
@@ -285,13 +333,15 @@ def summarize(text: str, ratio: float = 0.25, min_sentences: int = 3, max_senten
     grouped = {"Facts": [], "Arguments": [], "Findings": [], "Order": []}
     for i in chosen:
         grouped[classify_sentence(sentences[i], lang, i / n)].append(sentences[i])
-    # the forced operative sentence always belongs to the Order section
-    if forced is not None:
+    # Every explicitly prioritised operative line belongs in the Order section,
+    # even if a generic findings cue would otherwise win classification.
+    for forced_idx in forced_order:
+        forced_sentence = sentences[forced_idx]
         for key in ("Facts", "Arguments", "Findings"):
-            if sentences[forced] in grouped[key]:
-                grouped[key].remove(sentences[forced])
-        if sentences[forced] not in grouped["Order"]:
-            grouped["Order"].append(sentences[forced])
+            if forced_sentence in grouped[key]:
+                grouped[key].remove(forced_sentence)
+        if forced_sentence not in grouped["Order"]:
+            grouped["Order"].append(forced_sentence)
 
     titles = SECTION_TITLES.get(lang, SECTION_TITLES["en"])
     sections = [

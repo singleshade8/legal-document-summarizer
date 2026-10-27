@@ -7,6 +7,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import app, build_result                      # noqa: E402
+from extractors import _clean_repeated_page_margins    # noqa: E402
 from legal_info import detect_outcome, extract_key_info  # noqa: E402
 import translator                                        # noqa: E402
 from summarizer import detect_language, split_sentences, summarize  # noqa: E402
@@ -52,6 +53,25 @@ class SplitterTests(unittest.TestCase):
         self.assertTrue(sents[0].startswith("The complainant"))
 
 
+class PdfCleanupTests(unittest.TestCase):
+    def test_repeated_page_header_and_page_numbers_are_removed(self):
+        pages = [
+            "Lalita Kumari v. State of U.P.\nPage 1\nFirst body paragraph has enough content.\nFooter 1",
+            "Lalita Kumari v. State of U.P.\nPage 2\nSecond body paragraph has enough content.\nFooter 2",
+            "Lalita Kumari v. State of U.P.\nPage 3\nThird body paragraph has enough content.\nFooter 3",
+        ]
+        cleaned = _clean_repeated_page_margins(pages)
+        self.assertIn("Lalita Kumari v. State of U.P.", cleaned[0])
+        self.assertTrue(all("Lalita Kumari v. State of U.P." not in page for page in cleaned[1:]))
+        self.assertTrue(all(not line.lower().startswith("page ") for page in cleaned for line in page.splitlines()))
+        self.assertIn("First body paragraph", cleaned[0])
+        self.assertIn("Second body paragraph", cleaned[1])
+
+    def test_single_page_text_is_preserved(self):
+        page = "Court title\nPage 1\nA single page with meaningful legal text."
+        self.assertEqual(_clean_repeated_page_margins([page]), [page])
+
+
 class KeyInfoTests(unittest.TestCase):
     def test_english(self):
         info = extract_key_info(sample("english"))
@@ -65,6 +85,25 @@ class KeyInfoTests(unittest.TestCase):
 
     def test_tamil_decreed(self):
         self.assertEqual(extract_key_info(sample("tamil"))["outcome"], "Decreed")
+
+    def test_outcome_is_not_inferred_from_a_reference_to_an_old_acquittal(self):
+        prefix = "Procedural background concerns statutory interpretation and police duties. " * 20
+        text = (
+            prefix
+            + "A cited case records that the accused was acquitted of all charges. "
+            + "The present court directs registration of information disclosing a cognizable offence "
+            + "and lays down procedural directions."
+        )
+        self.assertEqual(detect_outcome(text), "")
+
+    def test_outcome_requires_explicit_operative_wording(self):
+        prefix = "Procedural background concerns statutory interpretation and police duties. " * 20
+        self.assertEqual(detect_outcome(
+            prefix + "The accused is hereby convicted for the offence and sentenced according to law."
+        ), "Convicted")
+        self.assertEqual(detect_outcome(
+            prefix + "The court directs registration of an FIR and provides guidance to police officers."
+        ), "")
 
     def test_digits_in_devanagari_are_normalised(self):
         info = extract_key_info("वाद क्रमांक १२३/२०२४\nआदेश दिनांक १५/०३/२०२४ को पारित किया गया।")

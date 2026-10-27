@@ -95,20 +95,62 @@ OUTCOME_TEXT = {
 }
 
 # Regex fragments (case-insensitive) that signal each outcome, in any supported language.
+# Outcome matching is deliberately conservative. These patterns are applied only to
+# the final operative portion (see legal_info.detect_outcome), and a missing match
+# is preferable to inventing an outcome.
 OUTCOME_PATTERNS = {
-    "Bail granted": [r"bail\b.{0,40}\b(?:granted|allowed)", r"(?:granted|allowed)\b.{0,30}\bbail",
-                     r"जमानत\s+आवेदन.{0,15}स्वीकार", r"जमानत.{0,20}(?:मंजूर|प्रदान)", r"जमानत\s+पर\s+रिहा", r"ஜாமீன்.{0,40}(?:வழங்க|அனுமதி)"],
-    "Bail rejected": [r"bail\b.{0,40}\b(?:rejected|dismissed|refused|declined)",
-                      r"जमानत\s+आवेदन.{0,15}(?:अस्वीकार|खारिज)", r"ஜாமீன்.{0,40}(?:மறுக்க|தள்ளுபடி)"],
-    "Acquitted": [r"acquitted", r"not guilty", r"बरी", r"दोषमुक्त", r"விடுதலை"],
-    "Convicted": [r"convicted", r"(?<!not )guilty", r"दोषसिद्ध", r"दोषी\s+(?:पाया|ठहराया)",
-                  r"குற்றவாளி\s*(?:என|எனத்)"],
-    "Decreed": [r"decreed", r"suit is decreed", r"डिक्री\s+(?:पारित|प्रदान)", r"தீர்ப்பாணை",
-                r"டிகிரி"],
-    "Dismissed": [r"dismissed", r"खारिज", r"தள்ளுபடி"],
-    "Allowed": [r"(?:appeal|petition|application)\s+is\s+(?:hereby\s+)?(?:partly\s+)?allowed",
-                r"आवेदन\s+स्वीकार", r"மனு\s+ஏற்க"],
-    "Disposed of": [r"disposed\s+of", r"निराकृत", r"முடித்து\s+வைக்க"],
+    "Bail granted": [
+        r"bail application\s+(?:is\s+)?(?:hereby\s+)?(?:allowed|granted)",
+        r"regular bail\s+(?:is\s+)?(?:hereby\s+)?(?:allowed|granted)",
+        r"released on bail",
+        r"जमानत आवेदन.{0,30}(?:स्वीकार|मंजूर)",
+        r"जमानत पर रिहा",
+        r"ஜாமீன் மனு.{0,30}(?:ஏற்க|வழங்க)",
+    ],
+    "Bail rejected": [
+        r"bail application\s+(?:is\s+)?(?:hereby\s+)?(?:rejected|dismissed|refused)",
+        r"जमानत आवेदन.{0,30}(?:अस्वीकार|खारिज)",
+        r"ஜாமீன் மனு.{0,30}(?:மறுக்க|தள்ளுபடி)",
+    ],
+    "Acquitted": [
+        r"(?:the accused|accused)\s+(?:is|are|stands?)\s+(?:hereby\s+)?acquitted",
+        r"दोषमुक्त किया जाता है",
+        r"आरोपी को बरी किया जाता है",
+        r"குற்றச்சாட்டுகளிலிருந்து விடுவிக்கப்படுகிறார்",
+    ],
+    "Convicted": [
+        r"(?:the accused|accused)\s+(?:is|stands?)\s+(?:hereby\s+)?convicted",
+        r"convicted for the offence",
+        r"दोषसिद्ध ठहराया जाता है",
+        r"दोषी करार दिया जाता है",
+        r"குற்றவாளி எனத் தீர்ப்பளிக்கப்படுகிறார்",
+    ],
+    "Decreed": [
+        r"(?:the )?suit is hereby decreed",
+        r"(?:the )?suit is decreed",
+        r"वाद (?:स्वीकार|डिक्री) किया जाता है",
+        r"வழக்கு தீர்ப்பாணை வழங்கப்படுகிறது",
+        r"தீர்ப்பாணை வழங்கப்பட்டு வழக்கு அனுமதிக்கப்படுகிறது",
+        r"தீர்ப்பாணை வழங்கப்படுகிறது",
+    ],
+    "Dismissed": [
+        r"(?:the )?(?:appeal|petition|application|complaint|suit)\s+(?:is|stands)\s+(?:hereby\s+)?dismissed",
+        r"(?:the )?(?:appeal|petition|application) is dismissed",
+        r"याचिका खारिज की जाती है",
+        r"आवेदन खारिज किया जाता है",
+        r"மனு தள்ளுபடி செய்யப்படுகிறது",
+    ],
+    "Allowed": [
+        r"(?:the )?(?:appeal|petition|application)\s+(?:is|stands)\s+(?:hereby\s+)?(?:partly\s+)?allowed",
+        r"आवेदन स्वीकार किया जाता है",
+        r"याचिका स्वीकार की जाती है",
+        r"மனு ஏற்கப்படுகிறது",
+    ],
+    "Disposed of": [
+        r"(?:the )?(?:matter|petition|application|case)\s+(?:is|stands)\s+(?:hereby\s+)?disposed of",
+        r"प्रकरण का निराकरण किया जाता है",
+        r"வழக்கு முடித்து வைக்கப்படுகிறது",
+    ],
 }
 
 # Known statutes -> canonical English name. Used to attach an Act to a "Section N" mention.

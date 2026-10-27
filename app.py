@@ -4,13 +4,14 @@ import re
 
 from flask import Flask, jsonify, render_template, request
 
-from extractors import ExtractionError, extract_text
+from extractors import ExtractionError, extract_pages, extract_text
+from evaluation import evaluate_claims
 from legal_info import extract_key_info
 from lexicon import INFO_LABELS, LANG_NAMES, OUTCOME_TEXT, SECTION_TITLES, SECTION_WORD
 from summarizer import summarize
 from translator import translate_sentences, translation_available
 
-APP_VERSION = "1.3"
+APP_VERSION = "1.4"
 BASE = os.path.dirname(os.path.abspath(__file__))
 SAMPLES = {
     "english": ("English – Cheque dishonour (S.138 NI Act)", "sample_english.txt"),
@@ -41,7 +42,7 @@ def _info_rows(info: dict, lang: str):
     return rows
 
 
-def build_result(text: str, ratio: float = 0.25, out_lang: str = "same"):
+def build_result(text: str, ratio: float = 0.25, out_lang: str = "same", source_pages: list[str] | None = None):
     text = text.strip()
     res = summarize(text, ratio=ratio)
     lang = res["lang"]
@@ -63,6 +64,8 @@ def build_result(text: str, ratio: float = 0.25, out_lang: str = "same"):
         "sections": res["sections"],
         "summary_text": summary_text,
         "translation": None,
+        # This is a source-text traceability screen, not a legal-accuracy score.
+        "claim_check": evaluate_claims(text, res["selected"], lang=lang, source_pages=source_pages),
     }
 
     if out_lang not in ("same", lang):
@@ -105,10 +108,16 @@ def sample(name):
 @app.post("/api/summarize")
 def api_summarize():
     text = ""
+    source_pages = None
     upload = request.files.get("file")
     try:
         if upload and upload.filename:
-            text = extract_text(upload.filename, upload.read())
+            file_bytes = upload.read()
+            if upload.filename.lower().endswith(".pdf"):
+                source_pages = extract_pages(upload.filename, file_bytes)
+                text = "\n\n".join(page for page in source_pages if page).strip()
+            else:
+                text = extract_text(upload.filename, file_bytes)
         else:
             text = request.form.get("text") or (request.get_json(silent=True) or {}).get("text", "")
     except ExtractionError as exc:
@@ -123,7 +132,7 @@ def api_summarize():
     except (TypeError, ValueError):
         ratio = 0.25
     out_lang = re.sub(r"[^a-z\-]", "", str(src.get("out_lang", "same")).lower()) or "same"
-    return jsonify(build_result(text, ratio, out_lang))
+    return jsonify(build_result(text, ratio, out_lang, source_pages=source_pages))
 
 
 @app.errorhandler(413)
