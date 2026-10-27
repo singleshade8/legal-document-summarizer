@@ -20,7 +20,7 @@ def _decode(data: bytes) -> str:
 
 def _line_key(line: str) -> str:
     """Normalise a line for repeated PDF header/footer detection."""
-    return re.sub(r"\\s+", " ", line).strip().casefold()
+    return re.sub(r"\s+", " ", line).strip().casefold()
 
 
 def _clean_repeated_page_margins(pages: list[str]) -> list[str]:
@@ -48,12 +48,12 @@ def _clean_repeated_page_margins(pages: list[str]) -> list[str]:
         kept = []
         for line in page.splitlines():
             key = _line_key(line)
-            if re.fullmatch(r"(?:page\\s+)?\\d{1,4}(?:\\s+of\\s+\\d{1,4})?", key):
+            if re.fullmatch(r"(?:page\s+)?\d{1,4}(?:\s+of\s+\d{1,4})?", key):
                 continue
             if page_index > 0 and key and key in repeated:
                 continue
             kept.append(line)
-        cleaned.append("\\n".join(kept).strip())
+        cleaned.append("\n".join(kept).strip())
     return cleaned
 
 
@@ -73,7 +73,7 @@ def extract_pages(filename: str, data: bytes) -> list[str]:
         except Exception as exc:
             raise ExtractionError(f"Could not read the PDF ({exc}).") from exc
         pages = _clean_repeated_page_margins(pages)
-        if len("\\n\\n".join(page for page in pages if page).strip()) < 50:
+        if len("\n\n".join(page for page in pages if page).strip()) < 50:
             raise ExtractionError(
                 "This PDF has no selectable text (it looks like a scanned image). "
                 "Run OCR first (e.g. Tesseract with eng+hin+tam) or paste the text."
@@ -85,7 +85,7 @@ def extract_pages(filename: str, data: bytes) -> list[str]:
             document = docx.Document(io.BytesIO(data))
         except Exception as exc:
             raise ExtractionError(f"Could not read the DOCX file ({exc}).") from exc
-        text = "\\n".join(paragraph.text for paragraph in document.paragraphs).strip()
+        text = "\n".join(paragraph.text for paragraph in document.paragraphs).strip()
         return [text] if text else []
     if name.endswith(".txt") or not name:
         text = _decode(data).strip()
@@ -95,4 +95,4 @@ def extract_pages(filename: str, data: bytes) -> list[str]:
 
 def extract_text(filename: str, data: bytes) -> str:
     """Extract a single text string for the existing summarisation pipeline."""
-    return "\\n\\n".join(page for page in extract_pages(filename, data) if page).strip()
+    return "\n\n".join(page for page in extract_pages(filename, data) if page).strip()
