@@ -65,9 +65,13 @@ The source text is processed in the app, but when a user requests a different ou
 the summary may be sent to a third-party public translation service. Do not use cross-language translation for
 confidential or sensitive documents unless that transfer is acceptable. This software is not legal advice.
 
+### Operative-order selection
+
+The summariser looks for a standalone late heading such as “Conclusion and Directions”, “Operative Portion” or “Final Order”. When found, it prioritises multiple direction-like sentences from that portion, subject to the summary budget. If no clear heading is found, it uses the existing cue-based fallback. This is a structural heuristic and cannot guarantee every direction or qualification is captured.
+
 ### Source traceability check
 
-The summary result includes a `claim_check` object. Each selected summary line is checked against the extracted source and reports a screening label (`Supported`, `Partially Supported`, `Contradicted`, or `Not Verifiable`), the closest extracted source sentence, and a source-sentence number. This number is **not a PDF page number**.
+The summary result includes a `claim_check` object. Each selected summary line is checked against the extracted source and reports a screening label (`Supported`, `Partially Supported`, `Contradicted`, or `Not Verifiable`), the closest extracted source sentence, and a source-sentence number. For PDFs, a page number is shown only when the match points unambiguously to one page; ambiguous matches are left without a page number. DOCX/TXT extraction does not provide reliable page layout.
 
 These labels are conservative string/lexical heuristics. A `Supported` result means that text is present in the extracted source; it does not prove that the line is correctly contextualised, legally significant, complete, or consistent with the final operative order. `Contradicted` is only a polarity-cue warning and can be wrong. Coverage checks are cue-based and do not establish completeness. Treat the panel as a review aid, not as a legal-accuracy percentage.
 
