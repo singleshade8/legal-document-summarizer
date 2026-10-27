@@ -115,15 +115,32 @@ def _sections(text):
 
 
 def detect_outcome(text: str) -> str:
-    """Return outcome label (key of OUTCOME_TEXT) judged from the operative tail of the text."""
-    tail_start = int(len(text) * 0.6)
-    tail = text[tail_start:]
+    """Return only an explicit outcome found near the end of the document.
+
+    The result is a heuristic, not a legal conclusion. A false blank is safer
+    than inferring acquittal/conviction from discussion of another case or from
+    arguments quoted in the judgment.
+    """
+    # Outcomes usually appear in the operative portion. Searching only the final
+    # 30% reduces accidental matches in facts, counsel submissions and citations.
+    tail = text[int(len(text) * 0.70):]
     best = None
     for label, patterns in OUTCOME_PATTERNS.items():
-        for p in patterns:
-            for m in re.finditer(p, tail, re.I | re.S):
-                if best is None or m.start() > best[0]:
-                    best = (m.start(), label)
+        for pattern in patterns:
+            for match in re.finditer(pattern, tail, re.I):
+                preceding = tail[max(0, match.start() - 60):match.start()].casefold()
+                # Avoid classifying an expressly negated English outcome.
+                if re.search(r"\b(?:not|never|no longer)\b(?:\W+\w+){0,4}\W*$", preceding):
+                    continue
+                # Common negation markers in Hindi and Tamil. Keep the check
+                # local to the matched phrase so unrelated earlier text is ignored.
+                if re.search(r"(?:नहीं|नही|नकारा गया)\s*(?:है\s*)?$", preceding[-24:]):
+                    continue
+                if re.search(r"(?:இல்லை|மறுக்கப்படவில்லை|அல்ல)\s*$", preceding[-24:]):
+                    continue
+                candidate = (match.start(), label)
+                if best is None or candidate[0] > best[0]:
+                    best = candidate
     return best[1] if best else ""
 
 
