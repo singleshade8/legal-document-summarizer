@@ -65,10 +65,16 @@ The source text is processed in the app, but when a user requests a different ou
 the summary may be sent to a third-party public translation service. Do not use cross-language translation for
 confidential or sensitive documents unless that transfer is acceptable. This software is not legal advice.
 
+### Source traceability check
+
+The summary result includes a `claim_check` object. Each selected summary line is checked against the extracted source and reports a screening label (`Supported`, `Partially Supported`, `Contradicted`, or `Not Verifiable`), the closest extracted source sentence, and a source-sentence number. This number is **not a PDF page number**.
+
+These labels are conservative string/lexical heuristics. A `Supported` result means that text is present in the extracted source; it does not prove that the line is correctly contextualised, legally significant, complete, or consistent with the final operative order. `Contradicted` is only a polarity-cue warning and can be wrong. Coverage checks are cue-based and do not establish completeness. Treat the panel as a review aid, not as a legal-accuracy percentage.
+
 ## 3. API
 
 `POST /api/summarize` – multipart form: `file` **or** `text`, `ratio` (0.05–0.6, default 0.25), `out_lang` (`same|en|hi|ta`).
-Returns `language`, `stats`, `key_info`, `sections`, `summary_text`, `translation`.
+Returns `language`, `stats`, `key_info`, `sections`, `summary_text`, `translation`, and `claim_check` (heuristic source traceability).
 
 ## 4. Limitations (mention these in your report)
 * Extractive: no paraphrasing; Hindi/Tamil stemming is a simple prefix heuristic, not a full morphological analyser.
