@@ -5,6 +5,7 @@ import re
 from flask import Flask, jsonify, render_template, request
 
 from extractors import ExtractionError, extract_text
+from evaluation import evaluate_claims
 from legal_info import extract_key_info
 from lexicon import INFO_LABELS, LANG_NAMES, OUTCOME_TEXT, SECTION_TITLES, SECTION_WORD
 from summarizer import summarize
@@ -63,6 +64,8 @@ def build_result(text: str, ratio: float = 0.25, out_lang: str = "same"):
         "sections": res["sections"],
         "summary_text": summary_text,
         "translation": None,
+        # This is a source-text traceability screen, not a legal-accuracy score.
+        "claim_check": evaluate_claims(text, res["selected"], lang=lang),
     }
 
     if out_lang not in ("same", lang):
