@@ -35,6 +35,18 @@ class ClaimEvaluationTests(unittest.TestCase):
         self.assertFalse(_negated("The court noted a notable procedural issue.", "en"))
         self.assertTrue(_negated("The court did not dismiss the petition.", "en"))
 
+    def test_pdf_page_is_reported_when_the_match_is_unambiguous(self):
+        page_one = "Background facts are discussed on this page in detail."
+        page_two = "The petition is dismissed after hearing the submissions."
+        source_pages = [page_one, page_two]
+        source = "\n\n".join(source_pages)
+        result = evaluate_claims(
+            source,
+            ["The petition is dismissed after hearing the submissions."],
+            source_pages=source_pages,
+        )
+        self.assertEqual(result["claims"][0]["source_page"], 2)
+
     def test_empty_claim_list_has_no_percentage(self):
         result = evaluate_claims("The court issued an order.", [])
         self.assertEqual(result["claims_total"], 0)
