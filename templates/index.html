@@ -244,9 +244,11 @@ function render(){
     $("#claimCheckSummary").textContent =
       `Checked ${check.claims_total} summary lines · exact source matches: ${counts["Supported"] || 0} · partial lexical matches: ${counts["Partially Supported"] || 0} · flagged polarity differences: ${counts["Contradicted"] || 0} · not verifiable by this check: ${counts["Not Verifiable"] || 0}`;
     $("#claimCheckItems").innerHTML = (check.claims || []).map(item => {
-      const sourceNo = item.source_sentence_number == null
-        ? "No close source sentence found"
-        : "Extracted source sentence #" + item.source_sentence_number;
+      const sourceNo = item.source_page != null
+        ? "PDF page #" + item.source_page + (item.source_sentence_number == null ? "" : " · extracted source sentence #" + item.source_sentence_number)
+        : (item.source_sentence_number == null
+          ? "No close source sentence found"
+          : "Extracted source sentence #" + item.source_sentence_number);
       return `<div class="claim-item">
         <div class="claim-status">${esc(item.status)} · match ${Math.round((item.match_score || 0) * 100)}%</div>
         <p>${esc(item.claim)}</p>
