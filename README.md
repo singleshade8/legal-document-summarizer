@@ -12,7 +12,7 @@ python app.py                          # open http://localhost:5000
 ```
 Click one of the three sample judgments, press **Summarise**. You can also paste text or upload PDF / DOCX / TXT.
 
-Run the tests: `python -m unittest discover -s tests -v` (32 tests).
+Run the tests: `python -m unittest discover -s tests -v`.
 
 ### Cross-language output (the *Output language* dropdown)
 The summary of a document in its **own language always works offline**.
@@ -49,9 +49,21 @@ uses your system fonts. The file name is taken from the case number. The footer 
 | Translation | `translator.py` | Optional: Argos (offline) -> Google -> MyMemory, batching, retry/back-off, disk cache, graceful failure |
 | Web app | `app.py`, `templates/index.html` | Flask JSON API (`POST /api/summarize`) + single-page UI |
 
-Why extractive and rule-based? Court e-services need **traceable output**: every summary line is a verbatim
-sentence from the judgment, so nothing can be hallucinated. It is also fast, private (documents never leave
-the server) and runs on a low-cost server.
+### Accuracy and privacy — read before relying on a result
+
+This is a **prototype**, not a validated legal research system. Extractive summarisation selects text from the source
+rather than freely generating new sentences, which can reduce unsupported paraphrases. It does **not** guarantee
+accuracy: PDF text extraction, page headers/footers, sentence splitting, ranking, section classification, regex-based
+metadata and cross-language translation can all omit, distort or misclassify legally important context.
+
+The outcome field is a conservative heuristic. If it cannot identify explicit operative wording, it may be blank;
+a blank is preferable to guessing. Any detected outcome, case metadata and summary must be checked against the original
+judgment, especially before legal, filing or case-management use. The app does not currently have a validated,
+benchmark-based accuracy percentage, so do not present a percentage as measured accuracy.
+
+The source text is processed in the app, but when a user requests a different output language for their own document,
+the summary may be sent to a third-party public translation service. Do not use cross-language translation for
+confidential or sensitive documents unless that transfer is acceptable. This software is not legal advice.
 
 ## 3. API
 
@@ -61,7 +73,9 @@ Returns `language`, `stats`, `key_info`, `sections`, `summary_text`, `translatio
 ## 4. Limitations (mention these in your report)
 * Extractive: no paraphrasing; Hindi/Tamil stemming is a simple prefix heuristic, not a full morphological analyser.
 * Scanned PDFs need OCR first (Tesseract `eng+hin+tam`) – detected but not performed.
-* Key-detail extraction is rule-based and tuned to common district-court formats; unusual layouts may be missed.
+* Key-detail extraction and outcome classification are rule-based heuristics. They may omit details or return no outcome; every result needs verification against the operative portion of the source.
+* Repeated PDF margin text is filtered conservatively, but irregular layouts and scanned documents may still extract incorrectly.
+* Cross-language translation uses third-party services for uncached user text; translated legal terminology must be verified by a qualified reader.
 * Marathi shares the Devanagari script and is detected as "Hindi".
 * Sample judgments are fictional.
 
