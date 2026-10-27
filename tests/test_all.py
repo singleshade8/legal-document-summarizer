@@ -86,22 +86,22 @@ class KeyInfoTests(unittest.TestCase):
         self.assertEqual(extract_key_info(sample("tamil"))["outcome"], "Decreed")
 
     def test_outcome_is_not_inferred_from_a_reference_to_an_old_acquittal(self):
+        prefix = "Procedural background concerns statutory interpretation and police duties. " * 20
         text = (
-            "The petition concerns the registration of information under Section 154. "
-            "A cited case records that the accused was acquitted of all charges. "
-            "The present court directs that information disclosing a cognizable offence "
-            "be registered in accordance with law and lays down procedural directions."
+            prefix
+            + "A cited case records that the accused was acquitted of all charges. "
+            + "The present court directs registration of information disclosing a cognizable offence "
+            + "and lays down procedural directions."
         )
         self.assertEqual(detect_outcome(text), "")
 
     def test_outcome_requires_explicit_operative_wording(self):
+        prefix = "Procedural background concerns statutory interpretation and police duties. " * 20
         self.assertEqual(detect_outcome(
-            "Facts and arguments discussed at length. The accused is hereby convicted "
-            "for the offence and sentenced according to law."
+            prefix + "The accused is hereby convicted for the offence and sentenced according to law."
         ), "Convicted")
         self.assertEqual(detect_outcome(
-            "Facts and arguments discussed at length. The court directs registration "
-            "of an FIR and provides guidance to police officers."
+            prefix + "The court directs registration of an FIR and provides guidance to police officers."
         ), "")
 
     def test_digits_in_devanagari_are_normalised(self):
