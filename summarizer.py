@@ -252,17 +252,17 @@ def classify_sentence(sentence: str, lang: str, rel_pos: float = 1.0) -> str:
 # Explicit section headings are strong structural evidence. They are used only
 # when they appear in the later part of the judgment on a standalone line.
 _OPERATIVE_HEADING_RE = re.compile(
-    r"(?im)^\\s*(?:"
-    r"CONCLUSION\\s+(?:AND|&)\\s+DIRECTIONS?|"
-    r"OPERATIVE\\s+(?:PART|PORTION|ORDER)|FINAL\\s+ORDER|"
-    r"(?:GENERAL\\s+)?DIRECTIONS?|ORDER|CONCLUSION|DISPOSITION|"
-    r"अंतिम\\s+आदेश|न्यायालय\\s+के\\s+निर्देश|निर्देश|आदेश|निष्कर्ष|"
-    r"இறுதி\\s+உத்தரவு|உத்தரவு|வழிகாட்டுதல்கள்|முடிவு"
-    r")\\s*[:\\-–—]?\\s*$"
+    r"(?im)^\s*(?:"
+    r"CONCLUSION\s+(?:AND|&)\s+DIRECTIONS?|"
+    r"OPERATIVE\s+(?:PART|PORTION|ORDER)|FINAL\s+ORDER|"
+    r"(?:GENERAL\s+)?DIRECTIONS?|ORDER|CONCLUSION|DISPOSITION|"
+    r"अंतिम\s+आदेश|न्यायालय\s+के\s+निर्देश|निर्देश|आदेश|निष्कर्ष|"
+    r"இறுதி\s+உத்தரவு|உத்தரவு|வழிகாட்டுதல்கள்|முடிவு"
+    r")\s*[:\-–—]?\s*$"
 )
 _OPERATIVE_ACTION_RE = re.compile(
-    r"\\b(?:shall|must|we direct|directed to|is directed|it is ordered|"
-    r"hereby ordered|is hereby allowed|is hereby dismissed)\\b",
+    r"\b(?:shall|must|we direct|directed to|is directed|it is ordered|"
+    r"hereby ordered|is hereby allowed|is hereby dismissed)\b",
     re.I,
 )
 
