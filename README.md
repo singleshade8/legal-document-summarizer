@@ -7,7 +7,7 @@ Summarisation runs **fully offline** – no API key, no model download.
 ## 1. Run it (2 minutes)
 
 ```bash
-pip install -r requirements.txt        # Python 3.9+
+pip install -r requirements.txt        # Python 3.10+
 python app.py                          # open http://localhost:5000
 ```
 Click one of the three sample judgments, press **Summarise**. You can also paste text or upload PDF / DOCX / TXT.
