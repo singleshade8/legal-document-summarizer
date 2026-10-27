@@ -41,10 +41,10 @@ class ClaimEvaluationTests(unittest.TestCase):
         prior_case = "A cited decision discussed medical negligence in a separate context."
         text = (
             background
-            + "\\n\\n"
+            + "\n\n"
             + prior_case
-            + "\\n\\nCONCLUSION AND DIRECTIONS\\n"
-            + "The officer shall register the information when a cognizable offence is disclosed.\\n"
+            + "\n\nCONCLUSION AND DIRECTIONS\n"
+            + "The officer shall register the information when a cognizable offence is disclosed.\n"
             + "The officer must communicate reasons in writing if the complaint is closed."
         )
         result = summarize(text, ratio=0.1)
