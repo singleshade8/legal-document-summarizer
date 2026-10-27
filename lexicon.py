@@ -114,7 +114,6 @@ OUTCOME_PATTERNS = {
     ],
     "Acquitted": [
         r"(?:the accused|accused)\s+(?:is|are|stands?)\s+(?:hereby\s+)?acquitted",
-        r"acquitted of (?:the|all) charges",
         r"दोषमुक्त किया जाता है",
         r"आरोपी को बरी किया जाता है",
         r"குற்றச்சாட்டுகளிலிருந்து விடுவிக்கப்படுகிறார்",
