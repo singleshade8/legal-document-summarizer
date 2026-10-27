@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import build_result  # noqa: E402
 from evaluation import _negated, evaluate_claims  # noqa: E402
+from summarizer import summarize  # noqa: E402
 
 
 class ClaimEvaluationTests(unittest.TestCase):
@@ -34,6 +35,27 @@ class ClaimEvaluationTests(unittest.TestCase):
     def test_unrelated_word_containing_not_is_not_a_negation(self):
         self.assertFalse(_negated("The court noted a notable procedural issue.", "en"))
         self.assertTrue(_negated("The court did not dismiss the petition.", "en"))
+
+    def test_explicit_directions_heading_preserves_multiple_operative_lines(self):
+        background = "The court reviewed police procedure and statutory duties in the record. " * 18
+        prior_case = "A cited decision discussed medical negligence in a separate context."
+        text = (
+            background
+            + "\\n\\n"
+            + prior_case
+            + "\\n\\nCONCLUSION AND DIRECTIONS\\n"
+            + "The officer shall register the information when a cognizable offence is disclosed.\\n"
+            + "The officer must communicate reasons in writing if the complaint is closed."
+        )
+        result = summarize(text, ratio=0.1)
+        order = " ".join(
+            sentence
+            for section in result["sections"] if section["key"] == "Order"
+            for sentence in section["sentences"]
+        ).casefold()
+        self.assertIn("shall register", order)
+        self.assertIn("must communicate", order)
+        self.assertNotIn("medical negligence", order)
 
     def test_pdf_page_is_reported_when_the_match_is_unambiguous(self):
         page_one = "Background facts are discussed on this page in detail."
