@@ -45,14 +45,16 @@ def _clean_repeated_page_margins(pages: list[str]) -> list[str]:
     repeated = {key for key, count in margin_counts.items() if count >= threshold}
 
     cleaned = []
-    for page in pages:
+    for page_index, page in enumerate(pages):
         kept = []
         for line in page.splitlines():
             key = _line_key(line)
             # Page numbers are layout artefacts when isolated on a line.
             if re.fullmatch(r"(?:page\s+)?\d{1,4}(?:\s+of\s+\d{1,4})?", key):
                 continue
-            if key and key in repeated:
+            # Keep the first-page occurrence for case/court metadata; suppress
+            # duplicated running headers/footers from subsequent pages only.
+            if page_index > 0 and key and key in repeated:
                 continue
             kept.append(line)
         cleaned.append("\n".join(kept).strip())
