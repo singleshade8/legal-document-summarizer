@@ -11,7 +11,7 @@ from lexicon import INFO_LABELS, LANG_NAMES, OUTCOME_TEXT, SECTION_TITLES, SECTI
 from summarizer import summarize
 from translator import translate_sentences, translation_available
 
-APP_VERSION = "1.3"
+APP_VERSION = "1.4"
 BASE = os.path.dirname(os.path.abspath(__file__))
 SAMPLES = {
     "english": ("English – Cheque dishonour (S.138 NI Act)", "sample_english.txt"),
