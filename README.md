@@ -4,6 +4,16 @@ A working web application that summarises court judgments / orders written in **
 and extracts the key legal details (case number, court, parties, dates, sections/Acts, outcome).
 Summarisation runs **fully offline** – no API key, no model download.
 
+## Windows quick start (for project demo/review)
+
+1. Install Python **3.10 or newer** from https://www.python.org/downloads/windows/ and enable **Add Python to PATH** during installation.
+2. Extract the project ZIP to a normal folder.
+3. Double-click `setup.bat`. It creates a local `.venv` virtual environment and installs the packages from `requirements.txt`.
+4. Once setup completes, double-click `run.bat`. It starts the Flask app and opens `http://127.0.0.1:5000` in your browser.
+5. Keep the command window open while using the app. Press **Ctrl+C** in that window to stop the server.
+
+The first setup needs an internet connection to install Python packages. If Windows cannot find Python, reinstall Python with PATH enabled, reopen the terminal, and try `setup.bat` again. `run.bat` also runs setup automatically if the virtual environment is missing.
+
 ## 1. Run it (2 minutes)
 
 ```bash
